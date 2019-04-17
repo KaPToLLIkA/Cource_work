@@ -2,6 +2,32 @@
 #include "pch.h"
 
 
+bool Game::findLetter(unsigned *idx)
+{
+	size_t sz = category.getSizeOfTable();
+	for (size_t i = 0; i < sz; ++i)
+	{
+		if (category.WordsSet()[i].size() == 0)
+			continue;
+		if (category.WordsSet()[i][0][0] == letter_utf8[0])
+		{
+			std::string letter = utf8_to_string(letter_utf8.c_str(), std::locale(".1251"));
+			std::string letter_in_table = utf8_to_string(category.WordsSet()[i][0].c_str(), std::locale(".1251"));
+
+			if (letter_in_table[0] == letter[0])
+			{
+				if (idx != nullptr) *idx = i;
+				return true;
+			}
+
+		}
+
+
+	}
+	return false;
+	
+}
+
 void Game::NextPlayer()
 {
 	do
@@ -335,46 +361,46 @@ bool Game::LoadGame(int idx_of_save)
 
 void Game::EndGame()
 {
-	uint64_t score = all_players[0].getScore();
-	std::string name = all_players[0].getName();
+	uint64_t score = bot_scores;
+	std::string name = "Terminator";
 
 	player_and_score.push_back(std::pair(name, score));
 
-	if (all_players.size() > 1) {
-		score = all_players[1].getScore();
-		name = all_players[1].getName();
+	
+	score = all_players[0].getScore();
+	name = all_players[0].getName();
 
-		if (score <= player_and_score[0].second)
-			player_and_score.push_back(std::pair(name, score));
-		else
-			player_and_score.insert(player_and_score.begin(), std::pair(name, score));
+	if (score <= player_and_score[0].second)
+		player_and_score.push_back(std::pair(name, score));
+	else
+		player_and_score.insert(player_and_score.begin(), std::pair(name, score));
 
 
-		for (size_t i = 2; i < all_players.size(); ++i)
+	for (size_t i = 1; i < all_players.size(); ++i)
+	{
+		size_t size = player_and_score.size();
+		score = all_players[i].getScore();
+		name = all_players[i].getName();
+		for (size_t x = 0; x < size; ++x)
 		{
-			size_t size = player_and_score.size();
-			score = all_players[i].getScore();
-			name = all_players[i].getName();
-			for (size_t x = 0; x < size; ++x)
+			if (x == 0 && score >= player_and_score[x].second)
 			{
-				if (x == 0 && score >= player_and_score[x].second)
-				{
-					player_and_score.insert(player_and_score.begin(), std::pair(name, score));
-					break;
-				}
-				if (x == size - 1) 
-				{
-					player_and_score.push_back(std::pair(name, score));
-					break;
-				}
-				if (player_and_score[x].second >= score && player_and_score[x + 1].second <= score)
-				{
-					player_and_score.insert(player_and_score.begin() + x + 1, std::pair(name, score));
-					break;
-				}
+				player_and_score.insert(player_and_score.begin(), std::pair(name, score));
+				break;
+			}
+			if (x == size - 1) 
+			{
+				player_and_score.push_back(std::pair(name, score));
+				break;
+			}
+			if (player_and_score[x].second >= score && player_and_score[x + 1].second <= score)
+			{
+				player_and_score.insert(player_and_score.begin() + x + 1, std::pair(name, score));
+				break;
 			}
 		}
 	}
+	
 
 
 	for(size_t i = 0; i < all_players.size(); ++i)
@@ -395,6 +421,8 @@ void Game::EndGame()
 	bot_losed = false;
 	bot_lvl = 2;
 	bot_scores = 10;
+	printed_word.clear();
+	word_printed = false;
 	bot_said.clear();
 }
 
@@ -404,8 +432,10 @@ bool Game::StartGame(sf::Vector2i window_pos,
 	                 size_t bot_lvl)
 {
 	player_and_score.clear();
+	
 	this->bot_lvl = bot_lvl;
 	
+
 	game_ended = false;
 
 	bool loading_window_started = true;
@@ -478,8 +508,11 @@ void Game::CheckPrintedWord(bool &answer)
 
 		delete[] buffer;
 
-		if (category.WordsSet()[category.safeHashF(printed_word)].size() == 0)
+		if (!findLetter())
+		{
 			can_t_find_word = true;
+			return;
+		}
 
 		if (category.findWord(printed_word) && next_letter == str[0]) {
 			
@@ -580,7 +613,7 @@ void Game::ShowResults()
 
 
 	ImGui::NewLine();
-	if (ImGui::Button("Ok"))
+	if (ImGui::Button("Ok", {120, 35}))
 	{
 		player_and_score.clear();
 		show_result_of_game = false;
@@ -612,7 +645,7 @@ void Game::ShowBot()
 	{
 		if ((rand() % (bot_lvl * bot_lvl - (bot_lvl - 1) * 2)) == 0)
 		{
-			unsigned idx = category.safeHashF(letter_utf8);
+			/*unsigned idx = category.safeHashF(letter_utf8);
 
 			std::string word;
 			while (true) {
@@ -642,8 +675,19 @@ void Game::ShowBot()
 					can_t_find_word = true;
 					break;
 				}
+			}*/
+			unsigned idx = 0;
+			if (findLetter(&idx))
+			{
+				bot_said = *category.WordsSet()[idx].begin();
+				category.useThisWord(bot_said);
+				std::string str = utf8_to_string(bot_said.c_str(), std::locale(".1251"));
+				category.getLastChar(str, next_letter);
+				letter_utf8 = convert_1251char_to_utf8(next_letter);
+				++bot_scores;
+
 			}
-			bot_said = word;
+			else can_t_find_word = true;
 		}
 		else
 		{
@@ -681,7 +725,7 @@ void Game::ShowPlayers()
 		{
 			
 			ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);
-			ImGui::Begin(u8"Список проигравших игроков", nullptr, { 400, 300 }, 1.0f,
+			ImGui::Begin(u8"Список проигравших игроков", nullptr, { 420, 300 }, 1.0f,
 				ImGuiWindowFlags_::ImGuiWindowFlags_NoResize |
 				ImGuiWindowFlags_::ImGuiWindowFlags_NoSavedSettings |
 				ImGuiWindowFlags_::ImGuiWindowFlags_HorizontalScrollbar);

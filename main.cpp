@@ -337,10 +337,10 @@ int main()
 
 	//=======================================================
 	//resource loading
-	ImGui::GetIO().Fonts->AddFontFromFileTTF("data\\12144.ttf", 20.f, nullptr, ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
-	ImGui::GetIO().Fonts->AddFontFromFileTTF("data\\12144.ttf", 28.f, nullptr, ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
-	ImGui::GetIO().Fonts->AddFontFromFileTTF("data\\12144.ttf", 36.f, nullptr, ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
-	ImGui::GetIO().Fonts->AddFontFromFileTTF("data\\12144.ttf", 16.f, nullptr, ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
+	ImGui::GetIO().Fonts->AddFontFromFileTTF("data\\monof55.ttf", 20.f, nullptr, ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
+	ImGui::GetIO().Fonts->AddFontFromFileTTF("data\\monof55.ttf", 28.f, nullptr, ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
+	ImGui::GetIO().Fonts->AddFontFromFileTTF("data\\monof55.ttf", 36.f, nullptr, ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
+	ImGui::GetIO().Fonts->AddFontFromFileTTF("data\\monof55.ttf", 16.f, nullptr, ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
 	ImGui::SFML::UpdateFontTexture();
 	
 	res::texture::warning_box.loadFromFile(".\\data\\textures\\!.png");
@@ -842,20 +842,21 @@ int main()
 		
 		
 		//if all windows closed and pressed esc -> quitting the game 
-		if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_::ImGuiKey_Escape))
+		if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_::ImGuiKey_Escape), false)
 			&& game.game_ended
 			&& !showParams::show_add_player_menu
 			&& !showParams::show_settings
 			&& !showParams::show_users_list
 			&& !showParams::show_category_redo
-			&& !showParams::show_category_editor) 
+			&& !showParams::show_category_editor
+			&& !showParams::show_music_manager) 
 		{
 			msgBoxFlags::msg_box_opend = true;
 			msgBoxFlags::show_close_window_question = true;
 			WakeMsgBoxSoundThread();
 		}
 		
-		if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_::ImGuiKey_Escape))
+		if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_::ImGuiKey_Escape), false)
 			&& !game.game_ended)
 		{
 			msgBoxFlags::msg_box_opend = true;
@@ -863,8 +864,12 @@ int main()
 			WakeMsgBoxSoundThread();
 		}
 
-		if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_::ImGuiKey_Escape))
-			&& showParams::show_category_redo)
+		if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_::ImGuiKey_Escape), false)
+			&& showParams::show_category_redo
+			&& !showParams::show_add_player_menu
+			&& !showParams::show_settings
+			&& !showParams::show_users_list
+			&& !showParams::show_music_manager)
 		{
 			msgBoxFlags::msg_box_opend = true;
 			msgBoxFlags::exit_categoty_redo = true;
@@ -874,7 +879,7 @@ int main()
 		}
 
 		//if escape pressed -> close all windows
-		if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_::ImGuiKey_Escape)))
+		if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_::ImGuiKey_Escape), false))
 		{
 			showParams::show_add_player_menu = false;
 			showParams::show_settings = false;
@@ -2256,6 +2261,8 @@ void ShowCategorySettings(sf::Vector2i wnd_pos)
 			showParams::show_category_editor = false;
 			showParams::show_category_choose = false;
 			showParams::show_category_redo = false;
+			showParams::show_get_name_dialog = false;
+			msgBoxFlags::msg_box_opend = false;
 		}
 
 
@@ -2271,7 +2278,7 @@ void ShowCategorySettings(sf::Vector2i wnd_pos)
 		ImGui::SameLine();
 
 		ImGui::SetCursorPosX(550.f - ImGui::GetStyle().ItemSpacing.x);
-		if (ImGui::Button(u8"Справка по поиску", {200, 23}))
+		if (ImGui::Button(u8"Справка по поиску", {200, 26}))
 		{
 			sounds::button_click.sound.play();
 			showParams::show_help_search = true;
@@ -2422,7 +2429,7 @@ void ShowCategorySettings(sf::Vector2i wnd_pos)
 				ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_ButtonHovered, button_col);
 
 			}
-			if (ImGui::Button(u8"Проверить на наличие в категории", { 750.f - 2.f * spacing, 30.f })
+			if (ImGui::Button(u8"Проверить на наличие в категории", { 750.f - 2.f * spacing, 26.f })
 				&& showParams::category_enable_search)
 			{
 				sounds::button_click.sound.play();
@@ -2484,7 +2491,7 @@ void ShowCategorySettings(sf::Vector2i wnd_pos)
 				ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_ButtonHovered, button_col);
 
 			}
-			if (ImGui::Button(u8"Сохранить и выйти", { 750.f - 2.f * spacing, 30.f })
+			if (ImGui::Button(u8"Сохранить и выйти", { 750.f - 2.f * spacing, 26.f })
 				&& showParams::category_enable_save)
 			{
 				sounds::button_click.sound.play();
@@ -2564,6 +2571,7 @@ void ShowRenameDialog(sf::Vector2i wnd_pos)
 		
 		ImGui::NewLine();
 		ImGui::NewLine();
+		ImGui::NewLine();
 		if (ImGui::Button(u8"Применить", ImVec2((600.f - 3.f * ImGui::GetStyle().ItemSpacing.x) / 2.f, 30.f))
 			|| ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_::ImGuiKey_Enter), false))
 		{
@@ -2626,7 +2634,7 @@ void ShowRenameDialog(sf::Vector2i wnd_pos)
 			sounds::button_click.sound.play();
 
 		}
-		ImGui::NewLine();
+		
 
 		std::string s1;
 		std::string s2;
@@ -2856,6 +2864,7 @@ void ShowSaveMenu(sf::Vector2i wnd_pos)
 			FilterLetters);
 		ImGui::NewLine();
 		ImGui::NewLine();
+		ImGui::NewLine();
 		if (ImGui::Button(u8"Сохранить и выйти", ImVec2((600.f - 3.f * ImGui::GetStyle().ItemSpacing.x) / 2.f, 30.f))
 			|| ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_::ImGuiKey_Enter), false))
 		{
@@ -2907,7 +2916,7 @@ void ShowSaveMenu(sf::Vector2i wnd_pos)
 			sounds::button_click.sound.play();
 
 		}
-		ImGui::NewLine();
+		
 
 		
 
@@ -3005,24 +3014,45 @@ void ShowHelpWindow()
 {
 	ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);
 	ImGui::SetNextWindowPosCenter(ImGuiCond_::ImGuiCond_FirstUseEver);
-	ImGui::Begin(u8"Справка по расширенному поиску", nullptr, { 550.f, 570.f }, 0.9f,
+	ImGui::Begin(u8"Справка по расширенному поиску", nullptr, { 550.f, 570.f }, 1.0f,
 		ImGuiWindowFlags_::ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_::ImGuiWindowFlags_NoSavedSettings |
-		ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse);
+		ImGuiWindowFlags_::ImGuiWindowFlags_NoSavedSettings);
 
 
 	ImGui::PopFont();
-	ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);
+	ImGui::PushFont(ImGui::GetIO().FontDefault);
 	//=============================================================================================
 
 
 	{
-		ImGui::BeginChild("categories_list_2", { 0, 470 }, true,
-			ImGuiWindowFlags_::ImGuiWindowFlags_HorizontalScrollbar);
+		
+		ImGui::BeginChild("categories_list_2", { 0, 470 }, true);
 		
 		ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + 510.f);
+		
+		if (ImGui::TreeNode(u8"Основная информация"))
+		{
+			ImGui::TextColored({ 1.f, 0.58f, 0.f, 1.f }, u8"   Для расширенного поиска используется синтаксис регулярных выражений Perl. "
+														"Все регулярные выражения должны быть записаны в формате: {[x]y}\n   Поиск регистронезависим.");
+			ImGui::Separator();
+			ImGui::TextColored({ 0.f, 1.0f, 0.f, 1.f }, u8"x"); ImGui::SameLine(); ImGui::SetCursorPosX(80.f);
+			ImGui::Text(u8"- буква, с которой начинаются слова, к которым будет применено регулярное выражение (фильтр). "
+						"Этот параметр позволяет ограничить область действия регулярного выражения (фильтра). "
+						"Его можно оставить пустым, тогда регулярное выражение (фильтр) будет применено ко всем словам в категории.");
+			ImGui::Separator();
+			ImGui::TextColored({ 0.f, 1.f, 0.f, 1.f }, u8"y"); ImGui::SameLine(); ImGui::SetCursorPosX(80.f);
+			ImGui::Text(u8"- само регулярное выражение (фильтр). Его необходимо писать в полной форме, например,"
+						" чтобы отобрать все слова в категории, начинающиеся на \"аб\", замените у в формуле на: аб\\S* "
+						"\n   Если этот параметр оставить пустым, то регулярное выражение (фильтр) выдаст пустой результат.");
+			ImGui::Separator();
+			ImGui::TextColored({ 1.f, 0.f, 0.f, 1.f }, u8"   Остальные формы записи регулярных выражений (фильтров) не будут распознаны. "
+														"Примеры и основы их оформления приведены ниже...");
+
+			ImGui::TreePop();
+		}
 		if (ImGui::TreeNode(u8"Метасимволы"))
 		{
+			ImGui::TextColored({ 0.f, 0.75f, 1.f, 1.f }, "################################################");
 			ImGui::TextColored({ 0.f, 1.f, 0.f, 1.f }, "\\"); ImGui::SameLine(); ImGui::SetCursorPosX(60.f);
 			ImGui::Text(u8"- считать следующий метасимвол как обычный символ");
 			ImGui::Separator();
@@ -3043,13 +3073,44 @@ void ShowHelpWindow()
 			ImGui::Separator();
 			ImGui::TextColored({ 0.f, 1.f, 0.f, 1.f }, "[ ]"); ImGui::SameLine(); ImGui::SetCursorPosX(60.f);
 			ImGui::Text(u8"- класс символов");
-			
+			ImGui::Separator();
+			//examples
+			ImGui::NewLine();
+			ImGui::TextColored({ 1.f, 0.f, 0.f, 1.f }, u8"Примеры:");
+			ImGui::Separator();
+			ImGui::Columns(2, "##ex_metasimb");
+			ImGui::SetColumnWidth(0, 170);
+			ImGui::SetColumnWidth(1, 380.f - ImGui::GetStyle().ItemSpacing.x * 4.f);
+
+			//#1
+			ImGui::Text(u8"а.в");
+			ImGui::NextColumn();
+			ImGui::Text(u8"- найдёт в тексте все 'а<любой_символ>в'.");
+			ImGui::Separator();
+			ImGui::NextColumn();
+			//#2
+			ImGui::Text(u8"(a.c)|(b.d)");
+			ImGui::NextColumn();
+			ImGui::Text(u8"- найдёт в тексте все 'a<любой_символ>c' или 'b<любой_символ>d'.");
+			ImGui::Separator();
+			ImGui::NextColumn();
+			//#3
+			ImGui::Text(u8"[0-9]");
+			ImGui::NextColumn();
+			ImGui::Text(u8"- найдёт в тексте все цифры.");
+			ImGui::Separator();
+			ImGui::NextColumn();
+
+
+			ImGui::Columns(1);
+			ImGui::NewLine();
+			ImGui::TextColored({ 0.f, 0.75f, 1.f, 1.f }, "################################################");
 			ImGui::TreePop();
 		}
-
 		if (ImGui::TreeNode(u8"Модификаторы метасимволов"))
 		{
-			ImGui::TextColored({ 1.f, 0.58f, 0.f, 1.f }, u8"Модификаторы пишутся сразу после символа (метасимвола), к которому они применяются");
+			ImGui::TextColored({ 0.f, 0.75f, 1.f, 1.f }, "################################################");
+			ImGui::TextColored({ 1.f, 0.58f, 0.f, 1.f }, u8"   Модификаторы пишутся сразу после символа (метасимвола), к которому они применяются");
 			ImGui::Separator();
 			ImGui::TextColored({ 0.f, 1.f, 0.f, 1.f }, "*"); ImGui::SameLine(); ImGui::SetCursorPosX(80.f);
 			ImGui::Text(u8"- повторяется 0 или большее число раз");
@@ -3068,37 +3129,134 @@ void ShowHelpWindow()
 			ImGui::Separator();
 			ImGui::TextColored({ 0.f, 1.f, 0.f, 1.f }, "{n,m}"); ImGui::SameLine(); ImGui::SetCursorPosX(80.f);
 			ImGui::Text(u8"- не менше n, но и не больше m");
+			ImGui::TextColored({ 1.f, 0.58f, 0.f, 1.f }, u8"   По умолчанию действие метасимволов \"жадно\" (greedy). Совпадение"
+				"распространяется на максимально возможную область, не учитывая результат "
+				"действия следующих метасимволов. Если вы хотите \"уменьшить их "
+				"аппетит\" то используйте символ '?'. Это не изменяет значение "
+				"метасимволов просто уменьшает распространение.");
 			ImGui::Separator();
-			
+			//examples
+			ImGui::NewLine();
+			ImGui::TextColored({ 1.f, 0.f, 0.f, 1.f }, u8"Примеры:");
+			ImGui::Separator();
+			ImGui::Columns(2, "##ex_modmetasimb");
+			ImGui::SetColumnWidth(0, 170);
+			ImGui::SetColumnWidth(1, 380.f - ImGui::GetStyle().ItemSpacing.x * 4.f);
 
+			//#1
+			ImGui::Text(u8"(ba*)|(ba{0,})");
+			ImGui::NextColumn();
+			ImGui::Text(u8"- найдёт в тексте все последовательноcти, состоящие из одной буквы 'b' и символов 'a' в количестве от 0 до бесконечности.");
+			ImGui::Separator();
+			ImGui::NextColumn();
+			//#2
+			ImGui::Text(u8"(ba+)|(ba{1,})");
+			ImGui::NextColumn();
+			ImGui::Text(u8"- найдёт в тексте все последовательноcти, состоящие из одной буквы 'b' и символов 'a' в количестве от 0 до бесконечности.");
+			ImGui::Separator();
+			ImGui::NextColumn();
+			//#3
+			ImGui::Text(u8"(ba?)|(ba{0,1})");
+			ImGui::NextColumn();
+			ImGui::Text(u8"- найдёт в тексте все последовательноcти, состоящие из одной буквы 'b' и символов 'a' в количестве от 0 до 1.");
+			ImGui::Separator();
+			ImGui::NextColumn();
+			//#4
+			ImGui::Text(u8"{n,m}?");
+			ImGui::NextColumn();
+			ImGui::Text(u8"- пример \"не жадного\" модификатора метасимвола (будет распространяться на минимально возможную область совпадения).");
+			ImGui::Separator();
+			ImGui::NextColumn();
+			//#5
+			ImGui::Text(u8"*?");
+			ImGui::NextColumn();
+			ImGui::Text(u8"- ещё один пример \"не жадного\" модификатора метасимвола, так же можно сделать и для остальных модификаторов.");
+			ImGui::Separator();
+			ImGui::NextColumn();
+
+			ImGui::Columns(1);
+
+			ImGui::NewLine();
+			ImGui::TextColored({ 0.f, 0.75f, 1.f, 1.f }, "################################################");
 			ImGui::TreePop();
 		}
-		/*if (ImGui::TreeNode(u8"Модификаторы метасимволов"))
+		if (ImGui::TreeNode(u8"Бэкслэш-символы"))
 		{
-			ImGui::TextColored({ 1.f, 0.58f, 0.f, 1.f }, u8"Модификаторы пишутся сразу после символа (метасимвола), к которому они применяются");
+			ImGui::TextColored({ 0.f, 0.75f, 1.f, 1.f }, "################################################");
+			ImGui::TextColored({ 1.f, 0.58f, 0.f, 1.f }, u8"   Здесь приведена только часть бэкслэш-символов, которые могут пригодиться при составлении регулярного выражения (фильтра)");
 			ImGui::Separator();
-			ImGui::TextColored({ 0.f, 1.f, 0.f, 1.f }, "*"); ImGui::SameLine(); ImGui::SetCursorPosX(80.f);
-			ImGui::Text(u8"- повторяется 0 или большее число раз");
+			ImGui::TextColored({ 0.f, 1.f, 0.f, 1.f }, "\\Q"); ImGui::SameLine(); ImGui::SetCursorPosX(80.f);
+			ImGui::Text(u8"- отмена действия как метасимвола.");
 			ImGui::Separator();
-			ImGui::TextColored({ 0.f, 1.f, 0.f, 1.f }, "+"); ImGui::SameLine(); ImGui::SetCursorPosX(80.f);
-			ImGui::Text(u8"- повторяется 1 или большее число раз");
+			ImGui::TextColored({ 0.f, 1.f, 0.f, 1.f }, "\\w"); ImGui::SameLine(); ImGui::SetCursorPosX(80.f);
+			ImGui::Text(u8"- алфавитно-цифровой или '_' символ.");
 			ImGui::Separator();
-			ImGui::TextColored({ 0.f, 1.f, 0.f, 1.f }, "?"); ImGui::SameLine(); ImGui::SetCursorPosX(80.f);
-			ImGui::Text(u8"- 1 или 0 раз");
+			ImGui::TextColored({ 0.f, 1.f, 0.f, 1.f }, "\\W"); ImGui::SameLine(); ImGui::SetCursorPosX(80.f);
+			ImGui::Text(u8"- не алфавитно-цифровой или '_' символ.");
 			ImGui::Separator();
-			ImGui::TextColored({ 0.f, 1.f, 0.f, 1.f }, "{n}"); ImGui::SameLine(); ImGui::SetCursorPosX(80.f);
-			ImGui::Text(u8"- точно n раз");
+			ImGui::TextColored({ 0.f, 1.f, 0.f, 1.f }, "\\s"); ImGui::SameLine(); ImGui::SetCursorPosX(80.f);
+			ImGui::Text(u8"- один пробел.");
 			ImGui::Separator();
-			ImGui::TextColored({ 0.f, 1.f, 0.f, 1.f }, "{n,}"); ImGui::SameLine(); ImGui::SetCursorPosX(80.f);
-			ImGui::Text(u8"- по меньшей мере раз");
+			ImGui::TextColored({ 0.f, 1.f, 0.f, 1.f }, "\\S"); ImGui::SameLine(); ImGui::SetCursorPosX(80.f);
+			ImGui::Text(u8"- один не пробел.");
 			ImGui::Separator();
-			ImGui::TextColored({ 0.f, 1.f, 0.f, 1.f }, "{n,m}"); ImGui::SameLine(); ImGui::SetCursorPosX(80.f);
-			ImGui::Text(u8"- не менше n, но и не больше m");
+			ImGui::TextColored({ 0.f, 1.f, 0.f, 1.f }, "\\d"); ImGui::SameLine(); ImGui::SetCursorPosX(80.f);
+			ImGui::Text(u8"- одна цифра.");
+			ImGui::Separator();
+			ImGui::TextColored({ 0.f, 1.f, 0.f, 1.f }, "\\D"); ImGui::SameLine(); ImGui::SetCursorPosX(80.f);
+			ImGui::Text(u8"- одна не цифра.");
+			ImGui::Separator();
+			ImGui::TextColored({ 0.f, 1.f, 0.f, 1.f }, "\\w+"); ImGui::SameLine(); ImGui::SetCursorPosX(80.f);
+			ImGui::Text(u8"- слово.");
+			ImGui::Separator();
+			ImGui::TextColored({ 0.f, 1.f, 0.f, 1.f }, "\\d+"); ImGui::SameLine(); ImGui::SetCursorPosX(80.f);
+			ImGui::Text(u8"- число.");
 			ImGui::Separator();
 
-
+			ImGui::NewLine();
+			ImGui::TextColored({ 0.f, 0.75f, 1.f, 1.f }, "################################################");
 			ImGui::TreePop();
-		}*/
+		}
+		if (ImGui::TreeNode(u8"Полезные фильтры"))
+		{
+			ImGui::TextColored({ 0.f, 0.75f, 1.f, 1.f }, "################################################");
+			ImGui::TextColored({ 1.f, 0.58f, 0.f, 1.f }, u8"   Здесь приведены примеры некоторых полезных фильтров");
+			ImGui::Separator();
+			ImGui::Columns(2, "##ex_modmetasimb");
+			ImGui::SetColumnWidth(0, 170);
+			ImGui::SetColumnWidth(1, 380.f - ImGui::GetStyle().ItemSpacing.x * 4.f);
+
+			//#1
+			ImGui::Text(u8"{[]\\S*}");
+			ImGui::NextColumn();
+			ImGui::Text(u8"- найдёт все слова в категории");
+			ImGui::Separator();
+			ImGui::NextColumn();
+			//#2
+			ImGui::Text(u8"{[а]а\\S*}");
+			ImGui::NextColumn();
+			ImGui::Text(u8"- найдёт все слова, начинающиеся на букву 'а'. Вместо 'а' могут быть любые буквы.");
+			ImGui::Separator();
+			ImGui::NextColumn();
+			//#3
+			ImGui::Text(u8"{[]а\\S*}");
+			ImGui::NextColumn();
+			ImGui::Text(u8"- так же найдёт все слова, начинающиеся на букву 'а', но поиск будет произведён по всем словам в категории. Вместо 'а' могут быть любые буквы.");
+			ImGui::Separator();
+			ImGui::NextColumn();
+			//#4
+			ImGui::Text(u8"{[а]абв\\S*}");
+			ImGui::NextColumn();
+			ImGui::Text(u8"- найдёт все слова, начинающиеся на 'абв'. Вместо 'абв' могут быть любые буквы.");
+			ImGui::Separator();
+			ImGui::NextColumn();
+
+			ImGui::Columns(1);
+
+			ImGui::NewLine();
+			ImGui::TextColored({ 0.f, 0.75f, 1.f, 1.f }, "################################################");
+			ImGui::TreePop();
+		}
 
 		ImGui::PopTextWrapPos();
 

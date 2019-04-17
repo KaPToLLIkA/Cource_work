@@ -87,7 +87,7 @@ void Player::ShowLight(bool &word_printed, std::string letter)
 	ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);
 	
 	
-	ImGui::Begin(name.c_str(), nullptr, { 420, 0.f }, 0.6f,
+	ImGui::Begin(name.c_str(), nullptr, { 360, 0.f }, 0.6f,
 		ImGuiWindowFlags_::ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_::ImGuiWindowFlags_NoSavedSettings |
 		ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse |
@@ -123,9 +123,8 @@ void Player::ShowLight(bool &word_printed, std::string letter)
 		
 		
 		
-		
 		ImGui::PushItemWidth(txt_size);
-		ImGui::InputText(u8"                                ", 
+		ImGui::InputText(u8"                        ", 
 			buffer.data(), buffer.size());
 		ImGui::PopItemWidth();
 
@@ -134,8 +133,9 @@ void Player::ShowLight(bool &word_printed, std::string letter)
 
 		if (ImGui::Button(u8"сказать", 
 			{ txt_size, 0.f })
-			|| ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_::ImGuiKey_Enter)))
+			|| ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_::ImGuiKey_Enter), false))
 		{
+
 			*printed_word = buffer.data();
 			if(!(printed_word->empty())) word_printed = true;
 			ZeroMemory(buffer.data(), buffer.size());

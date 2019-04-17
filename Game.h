@@ -31,7 +31,7 @@ private:
 
 	Words category;
 
-
+	bool findLetter(unsigned *idx = nullptr);
 	void NextPlayer();
 public:
 	bool bot_losed            = false;
