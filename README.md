@@ -1,21 +1,23 @@
-# Курсовая работа
-Игра в слова
+# Coursework
+Word game
 
-В игре присутсвуют: редактор категорий, возможность сохранения и загрузки игры, некоторые возможности кастомизации, бот
+In the game there are: category editor, the ability to save and load the game, some customization options, bot
 
-Для разработки были задействованы библиотека ImGui и фреймворк SFML 2.5.1
+The ImGui library and SFML 2.5.1 framework were used for the development
 
-# Как собрать проект
-1) Скачайте ImGui [здесь](https://github.com/ocornut/imgui)
+# How to build a project
 
-2) Скачайте SFML [здесь](https://www.sfml-dev.org/download.php)
+1) Download ImGui [here](https://github.com/coconut/imgui)
 
-3) Скачайте ImGui binding для SFML [здесь](https://github.com/eliasdaler/imgui-sfml)
 
-4) Изучите [статью](https://habr.com/ru/post/335512/), там есть пошаговая инструкция
+2) Download SFML [here](https://www.sfml-dev.org/download.php)
 
-5) Изучите [статью](http://kychka-pc.ru/sfml/urok-1-podklyuchenie-biblioteki-k-srede-razrabotki-visual-studio-2013.html), для подключения SFML к проекту
+3) Download ImGui binding for SFML [here](https://github.com/eliasdaler/imgui-sfml)
 
-6) Изучите [статью](http://kychka-pc.ru/wiki/svobodnaya-baza-znanij-sfml/uroki-sfml/staticheskaya-linkovka-sfml-visual-studio-2015), для статической линковки SFML к проекту
+4) Study [the article](https://habr.com/ru/post/335512/), there is a step-by-step instruction
 
-7) Настройте ваш проект для х32 платформы
+5) Study [the article](http://kychka-pc.ru/sfml/urok-1-podklyuchenie-biblioteki-k-srede-razrabotki-visual-studio-2013.html) to connect to the SFML project
+
+6) Study [the article](http://kuchka-pc.ru/wiki/svobodnaya-baza-znanij-html/uroki-sfml/staticheskaya-linkovka-sfml-visual-studio-2015) for static linking SFML to the project
+
+7) Set up your project for x32 platform (use this preprocessor defenitions: _CRT_SECURE_NO_WARNINGS and _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS)
