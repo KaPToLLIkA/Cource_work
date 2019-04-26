@@ -355,9 +355,76 @@ std::string Words::utf8_to_string		   (const char *utf8str, const std::locale& l
 	return std::string(buf.data(), buf.size());
 }
 
+
+
 //===================
 
+void Words::sortedInsert(unsigned idx, std::string &word)
+{
+	if (words_set[idx].size() == 0)
+	{
+		words_set[idx].push_back(word);
+		return;
+	}
+	if (words_set[idx].size() == 1)
+	{
+		if (*(words_set[idx].begin()) >= word)
+		{
+			words_set[idx].insert(words_set[idx].begin(), word);
+			return;
+		}
+		else
+		{
+			words_set[idx].push_back(word);
+			return;
+		}
+	}
+	size_t size = words_set[idx].size();
+	for (size_t i = 0; i < size; ++i)
+	{
+		if (i == 0 && words_set[idx][i] >= word)
+		{
+			words_set[idx].insert(words_set[idx].begin(), word);
+			return;
+		}
+		if (i == size - 1)
+		{
+			words_set[idx].push_back(word);
+			return;
+		}
+		if (words_set[idx][i] <= word && words_set[idx][i + 1] >= word)
+		{
+			words_set[idx].insert(words_set[idx].begin() + i + 1, word);
+			return;
+		}
 
+	}
+
+}
+
+void Words::recBinarySearch(unsigned idx, std::string & word, size_t left, size_t right)
+{
+	if (left >= right || words_set[idx].size() == 0) return;
+
+
+	size_t mid = left + ((right - left) >> 1);
+	if (words_set[idx][mid] == word)
+	{
+		founded_element = words_set[idx].begin() + mid;
+		return;
+	}
+	if (words_set[idx][mid] > word)
+	{
+		recBinarySearch(idx, word, left, mid);
+		return;
+	}
+	else
+	{
+		recBinarySearch(idx, word, mid + 1, right);
+		return;
+	}
+
+}
 
 
 
@@ -632,7 +699,7 @@ void Words::loadData()
 			if (input.eof()) break;
 			decode(buffer);
 			idx = safeHashF(buffer);
-			words_set[idx].push_back(buffer);
+			sortedInsert(idx, buffer);
 			words_counter++;
 		} 	
 	}
@@ -741,15 +808,15 @@ bool Words::findWord(std::string &word)
 	
 	unsigned idx = safeHashF(word);
 	founded_element = words_set[idx].end();
-	for (auto it = words_set[idx].begin(); it != words_set[idx].end(); ++it)
+	/*for (auto it = words_set[idx].begin(); it != words_set[idx].end(); ++it)
 	{
 		if (*it == word)
 		{
 			founded_element = it;
 			break;
 		}
-	}
-	
+	}*/
+	recBinarySearch(idx, word, 0, words_set[idx].size());
 	if(founded_element == words_set[idx].end()) return false;
 	return true;
 }
@@ -765,7 +832,7 @@ void Words::addWords()
 			total_added.insert(*it);
 			std::string str = *it;
 			idx = safeHashF(str);
-			words_set[idx].push_back(*it);
+			sortedInsert(idx, str);
 			++words_counter;
 
 		}

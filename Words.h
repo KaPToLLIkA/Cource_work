@@ -28,6 +28,8 @@ private:
 	std::string convert_1251char_to_utf8(char c);
 	std::string utf8_to_string			(const char *utf8str, const std::locale& loc);
 	//===================
+	void        sortedInsert			(unsigned idx, std::string &word);
+	void		recBinarySearch         (unsigned idx, std::string &word, size_t left, size_t right);
 
 	uint64_t words_counter = 0;
 	uint64_t counter_of_used_words = 0;
