@@ -1,10 +1,11 @@
 #pragma once
 #include "pch.h"
+#include "utils.h"
 
 class Music final
 {
 private:
-	std::vector <std::string>* music_path;
+	std::vector <std::wstring>* music_path;
 	sf::Music                  background_music;
 	bool                       can_play = false;
 	bool                       is_playing = false;
@@ -14,8 +15,8 @@ public:
 	
 	//initialization
 	Music();
-	Music(std::vector <std::string> *music_path);
-	void init(std::vector <std::string> *music_path);
+	Music(std::vector <std::wstring> *music_path);
+	void init(std::vector <std::wstring> *music_path);
 
 	//operations
 	void play();

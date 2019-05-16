@@ -1,12 +1,144 @@
 #include "pch.h"
 #include "Words.h"
 
-#include <regex>
+std::wstring wstring::m_input_buffer = L"";
 
 
 
 
 //encoding and decoding
+void encode(std::wstring& in)
+{
+	wstring w(in);
+	encode(w);
+	in = w.c_str();
+}
+void decode(std::wstring& in)
+{
+	wstring w(in);
+	decode(w);
+	in = w.c_str();
+}
+void encode(wstring &in)
+{
+	for (size_t i = 0; i < in.size(); ++i)
+	{
+		in[i] = ~in[i];
+		int16_t x = in[i] & 0xAAAA;
+		int16_t y = in[i] & 0x5555;
+		x >>= 1;
+		y <<= 1;
+		x &= 0x7FFF;
+		in[i] = x | y;
+
+		x = in[i] & 0xCCCC;
+		y = in[i] & 0X3333;
+		x >>= 2;
+		y <<= 2;
+		x &= 0x3FFF;
+		in[i] = x | y;
+
+
+		if (in[i] == 0x0000) in[i] = 0x0F00;
+		else if (in[i] == 0x000F) in[i] = 0xFF00;
+		else if (in[i] == 0x00F0) in[i] = 0xF00F;
+		else if (in[i] == 0x00FF) in[i] = 0xF0FF;
+		else if (in[i] == 0x0F00) in[i] = 0x0000;
+		else if (in[i] == 0x0F0F) in[i] = 0xFF0F;
+		else if (in[i] == 0x0FF0) in[i] = 0xFFF0;
+		else if (in[i] == 0x0FFF) in[i] = 0xF0F0;
+		else if (in[i] == 0xF000) in[i] = 0xFFFF;
+		else if (in[i] == 0xF00F) in[i] = 0x00F0;
+		else if (in[i] == 0xF0F0) in[i] = 0x0FFF;
+		else if (in[i] == 0xF0FF) in[i] = 0x00FF;
+		else if (in[i] == 0xFF00) in[i] = 0x000F;
+		else if (in[i] == 0xFF0F) in[i] = 0x0F0F;
+		else if (in[i] == 0xFFF0) in[i] = 0x0FF0;
+		else if (in[i] == 0xFFFF) in[i] = 0xF000;
+
+
+		if (in[i] == 0xAAAA) in[i] = 0xA5AA;
+		else if (in[i] == 0xAAA5) in[i] = 0x55AA;
+		else if (in[i] == 0xAA5A) in[i] = 0x5AA5;
+		else if (in[i] == 0xAA55) in[i] = 0x5A55;
+		else if (in[i] == 0xA5AA) in[i] = 0xAAAA;
+		else if (in[i] == 0xA5A5) in[i] = 0x55A5;
+		else if (in[i] == 0xA55A) in[i] = 0x555A;
+		else if (in[i] == 0xA555) in[i] = 0x5A5A;
+		else if (in[i] == 0x5AAA) in[i] = 0x5555;
+		else if (in[i] == 0x5AA5) in[i] = 0xAA5A;
+		else if (in[i] == 0x5A5A) in[i] = 0xA555;
+		else if (in[i] == 0x5A55) in[i] = 0xAA55;
+		else if (in[i] == 0x55AA) in[i] = 0xAAA5;
+		else if (in[i] == 0x55A5) in[i] = 0xA5A5;
+		else if (in[i] == 0x555A) in[i] = 0xA55A;
+		else if (in[i] == 0x5555) in[i] = 0x5AAA;
+
+		in[i] = ~in[i];
+	}
+
+}
+void decode(wstring &in)
+{
+	for (size_t i = 0; i < in.size(); ++i)
+	{
+		in[i] = ~in[i];
+
+
+
+		if (in[i] == 0x0000) in[i] = 0x0F00;
+		else if (in[i] == 0x000F) in[i] = 0xFF00;
+		else if (in[i] == 0x00F0) in[i] = 0xF00F;
+		else if (in[i] == 0x00FF) in[i] = 0xF0FF;
+		else if (in[i] == 0x0F00) in[i] = 0x0000;
+		else if (in[i] == 0x0F0F) in[i] = 0xFF0F;
+		else if (in[i] == 0x0FF0) in[i] = 0xFFF0;
+		else if (in[i] == 0x0FFF) in[i] = 0xF0F0;
+		else if (in[i] == 0xF000) in[i] = 0xFFFF;
+		else if (in[i] == 0xF00F) in[i] = 0x00F0;
+		else if (in[i] == 0xF0F0) in[i] = 0x0FFF;
+		else if (in[i] == 0xF0FF) in[i] = 0x00FF;
+		else if (in[i] == 0xFF00) in[i] = 0x000F;
+		else if (in[i] == 0xFF0F) in[i] = 0x0F0F;
+		else if (in[i] == 0xFFF0) in[i] = 0x0FF0;
+		else if (in[i] == 0xFFFF) in[i] = 0xF000;
+
+		if (in[i] == 0xAAAA) in[i] = 0xA5AA;
+		else if (in[i] == 0xAAA5) in[i] = 0x55AA;
+		else if (in[i] == 0xAA5A) in[i] = 0x5AA5;
+		else if (in[i] == 0xAA55) in[i] = 0x5A55;
+		else if (in[i] == 0xA5AA) in[i] = 0xAAAA;
+		else if (in[i] == 0xA5A5) in[i] = 0x55A5;
+		else if (in[i] == 0xA55A) in[i] = 0x555A;
+		else if (in[i] == 0xA555) in[i] = 0x5A5A;
+		else if (in[i] == 0x5AAA) in[i] = 0x5555;
+		else if (in[i] == 0x5AA5) in[i] = 0xAA5A;
+		else if (in[i] == 0x5A5A) in[i] = 0xA555;
+		else if (in[i] == 0x5A55) in[i] = 0xAA55;
+		else if (in[i] == 0x55AA) in[i] = 0xAAA5;
+		else if (in[i] == 0x55A5) in[i] = 0xA5A5;
+		else if (in[i] == 0x555A) in[i] = 0xA55A;
+		else if (in[i] == 0x5555) in[i] = 0x5AAA;
+
+
+		int16_t x = in[i] & 0xCCCC;
+		int16_t y = in[i] & 0X3333;
+		x >>= 2;
+		y <<= 2;
+		x &= 0x3FFF;
+		in[i] = x | y;
+
+		x = in[i] & 0xAAAA;
+		y = in[i] & 0x5555;
+		x >>= 1;
+		y <<= 1;
+		x &= 0x7FFF;
+		in[i] = x | y;
+
+		in[i] = ~in[i];
+	}
+
+}
 void encode(std::string &in)
 {
 	size_t size = in.size();
@@ -148,103 +280,36 @@ void decode(std::string &in)
 	}
 
 }
-bool isRegex(const std::string &in, std::regex &result_rx)
+bool isRegex(const std::wstring &in, boost::wregex &result_rx)
 {
 	if (in.size() < 4) return false;
 
-	std::string regex;
+	std::wstring regex;
 
-	if (*in.begin() == '{' && *(--in.end()) == '}')
+	if (*in.begin() == L'{' && *(--in.end()) == L'}')
 	{
-		if (in[1] != '[') return false;
-		if (in[3] == ']') 
+		if (in[1] != L'[') return false;
+		if (in[3] == L']') 
 		{
-			if (strchr("\\/^.$|()[]*+?{},&'`~#:=", in[2])) return false;
+			if (wcschr(L"\\/^.$|()[]*+?{},&'`~#:=", in[2])) return false;
 		}
-		else if (in[2] != ']') return false;
+		else if (in[2] != L']') return false;
 
-		//regex += in[2];
-		if(in[3] == ']') regex += in.substr(4, in.size() - 5);
+		
+		if(in[3] == L']') regex += in.substr(4, in.size() - 5);
 		else regex += in.substr(3, in.size() - 4);
 
-		for (auto & ch : regex)
+		
+		for (size_t i = 0; i < regex.size(); ++i)
 		{
-			switch (ch)
-			{
-			case 'А': ch = 'а';
-				break;
-			case 'Б': ch = 'б';
-				break;
-			case 'В': ch = 'в';
-				break;
-			case 'Г': ch = 'г';
-				break;
-			case 'Д': ch = 'д';
-				break;
-			case 'Е': ch = 'е';
-				break;
-			case 'Ё': ch = 'ё';
-				break;
-			case 'Ж': ch = 'ж';
-				break;
-			case 'З': ch = 'з';
-				break;
-			case 'И': ch = 'и';
-				break;
-			case 'Й': ch = 'й';
-				break;
-			case 'К': ch = 'к';
-				break;
-			case 'Л': ch = 'л';
-				break;
-			case 'М': ch = 'м';
-				break;
-			case 'Н': ch = 'н';
-				break;
-			case 'О': ch = 'о';
-				break;
-			case 'П': ch = 'п';
-				break;
-			case 'Р': ch = 'р';
-				break;
-			case 'С': ch = 'с';
-				break;
-			case 'Т': ch = 'т';
-				break;
-			case 'У': ch = 'у';
-				break;
-			case 'Ф': ch = 'ф';
-				break;
-			case 'Х': ch = 'х';
-				break;
-			case 'Ц': ch = 'ц';
-				break;
-			case 'Ч': ch = 'ч';
-				break;
-			case 'Ш': ch = 'ш';
-				break;
-			case 'Щ': ch = 'щ';
-				break;
-			case 'Ь': ch = 'ь';
-				break;
-			case 'Ъ': ch = 'ъ';
-				break;
-			case 'Э': ch = 'э';
-				break;
-			case 'Ю': ch = 'ю';
-				break;
-			case 'Я': ch = 'я';
-				break;
-			case 'Ы': ch = 'ы';
-				break;
-			}
-
+			if (regex[i] == L'\\') ++i;
+			else regex[i] = towlower(regex[i]);
 		}
 
 		try
 		{
 			
-			result_rx = std::regex(regex.c_str(), std::regex_constants::icase);
+			result_rx = boost::wregex(regex.c_str());
 		}
 		catch (...)
 		{
@@ -257,170 +322,29 @@ bool isRegex(const std::string &in, std::regex &result_rx)
 	return false;
 }
 
-//codepages
-void		Words::cp1251_to_utf8		   (char *out, const char *in) {
-	static const int table[128] = {
-		0x82D0,0x83D0,0x9A80E2,0x93D1,0x9E80E2,0xA680E2,0xA080E2,0xA180E2,
-		0xAC82E2,0xB080E2,0x89D0,0xB980E2,0x8AD0,0x8CD0,0x8BD0,0x8FD0,
-		0x92D1,0x9880E2,0x9980E2,0x9C80E2,0x9D80E2,0xA280E2,0x9380E2,0x9480E2,
-		0,0xA284E2,0x99D1,0xBA80E2,0x9AD1,0x9CD1,0x9BD1,0x9FD1,
-		0xA0C2,0x8ED0,0x9ED1,0x88D0,0xA4C2,0x90D2,0xA6C2,0xA7C2,
-		0x81D0,0xA9C2,0x84D0,0xABC2,0xACC2,0xADC2,0xAEC2,0x87D0,
-		0xB0C2,0xB1C2,0x86D0,0x96D1,0x91D2,0xB5C2,0xB6C2,0xB7C2,
-		0x91D1,0x9684E2,0x94D1,0xBBC2,0x98D1,0x85D0,0x95D1,0x97D1,
-		0x90D0,0x91D0,0x92D0,0x93D0,0x94D0,0x95D0,0x96D0,0x97D0,
-		0x98D0,0x99D0,0x9AD0,0x9BD0,0x9CD0,0x9DD0,0x9ED0,0x9FD0,
-		0xA0D0,0xA1D0,0xA2D0,0xA3D0,0xA4D0,0xA5D0,0xA6D0,0xA7D0,
-		0xA8D0,0xA9D0,0xAAD0,0xABD0,0xACD0,0xADD0,0xAED0,0xAFD0,
-		0xB0D0,0xB1D0,0xB2D0,0xB3D0,0xB4D0,0xB5D0,0xB6D0,0xB7D0,
-		0xB8D0,0xB9D0,0xBAD0,0xBBD0,0xBCD0,0xBDD0,0xBED0,0xBFD0,
-		0x80D1,0x81D1,0x82D1,0x83D1,0x84D1,0x85D1,0x86D1,0x87D1,
-		0x88D1,0x89D1,0x8AD1,0x8BD1,0x8CD1,0x8DD1,0x8ED1,0x8FD1
-	};
-	while (*in)
-		if (*in & 0x80) {
-			int v = table[(int)(0x7f & *in++)];
-			if (!v)
-				continue;
-			*out++ = (char)v;
-			*out++ = (char)(v >> 8);
-			if (v >>= 16)
-				*out++ = (char)v;
-		}
-		else
-			*out++ = *in++;
-	*out = 0;
-}
-std::string Words::cp1251_to_utf8		   (std::string &input)
-{
-	static const int table[128] = {
-	   0x82D0,0x83D0,0x9A80E2,0x93D1,0x9E80E2,0xA680E2,0xA080E2,0xA180E2,
-	   0xAC82E2,0xB080E2,0x89D0,0xB980E2,0x8AD0,0x8CD0,0x8BD0,0x8FD0,
-	   0x92D1,0x9880E2,0x9980E2,0x9C80E2,0x9D80E2,0xA280E2,0x9380E2,0x9480E2,
-	   0,0xA284E2,0x99D1,0xBA80E2,0x9AD1,0x9CD1,0x9BD1,0x9FD1,
-	   0xA0C2,0x8ED0,0x9ED1,0x88D0,0xA4C2,0x90D2,0xA6C2,0xA7C2,
-	   0x81D0,0xA9C2,0x84D0,0xABC2,0xACC2,0xADC2,0xAEC2,0x87D0,
-	   0xB0C2,0xB1C2,0x86D0,0x96D1,0x91D2,0xB5C2,0xB6C2,0xB7C2,
-	   0x91D1,0x9684E2,0x94D1,0xBBC2,0x98D1,0x85D0,0x95D1,0x97D1,
-	   0x90D0,0x91D0,0x92D0,0x93D0,0x94D0,0x95D0,0x96D0,0x97D0,
-	   0x98D0,0x99D0,0x9AD0,0x9BD0,0x9CD0,0x9DD0,0x9ED0,0x9FD0,
-	   0xA0D0,0xA1D0,0xA2D0,0xA3D0,0xA4D0,0xA5D0,0xA6D0,0xA7D0,
-	   0xA8D0,0xA9D0,0xAAD0,0xABD0,0xACD0,0xADD0,0xAED0,0xAFD0,
-	   0xB0D0,0xB1D0,0xB2D0,0xB3D0,0xB4D0,0xB5D0,0xB6D0,0xB7D0,
-	   0xB8D0,0xB9D0,0xBAD0,0xBBD0,0xBCD0,0xBDD0,0xBED0,0xBFD0,
-	   0x80D1,0x81D1,0x82D1,0x83D1,0x84D1,0x85D1,0x86D1,0x87D1,
-	   0x88D1,0x89D1,0x8AD1,0x8BD1,0x8CD1,0x8DD1,0x8ED1,0x8FD1
-	};
-	const char *in = input.c_str();
-	char *out = new char[input.size() * 4];
-	char *out_old = out;
-	ZeroMemory(out, input.size() * 4);
-	while (*in)
-		if (*in & 0x80) {
-			int v = table[(int)(0x7f & *in++)];
-			if (!v)
-				continue;
-			*out++ = (char)v;
-			*out++ = (char)(v >> 8);
-			if (v >>= 16)
-				*out++ = (char)v;
-		}
-		else
-			*out++ = *in++;
-
-	std::string result = out_old;
-	delete[] out_old;
-
-	return result;
-}
-std::string Words::convert_1251char_to_utf8(char c)
-{
-	char out[4] = { '\0' };
-	char in[2] = { '\0' };
-	in[0] = c;
-	cp1251_to_utf8(out, in);
-	std::string result = out;
-
-	return result;
-}
-std::string Words::utf8_to_string		   (const char *utf8str, const std::locale& loc)
-{
-	// UTF-8 to wstring
-	std::wstring_convert<std::codecvt_utf8<wchar_t>> wconv;
-	
-	std::wstring wstr = wconv.from_bytes(utf8str);
-	// wstring to string
-	std::vector<char> buf(wstr.size());
-	std::use_facet<std::ctype<wchar_t>>(loc).narrow(wstr.data(), wstr.data() + wstr.size(), '?', buf.data());
-	return std::string(buf.data(), buf.size());
-}
-
-
 
 //===================
 
-void Words::sortedInsert(unsigned idx, std::string &word)
+
+void Words::recBinarySearch(wstring & word, size_t left, size_t right)
 {
-	if (words_set[idx].size() == 0)
-	{
-		words_set[idx].push_back(word);
-		return;
-	}
-	if (words_set[idx].size() == 1)
-	{
-		if (*(words_set[idx].begin()) >= word)
-		{
-			words_set[idx].insert(words_set[idx].begin(), word);
-			return;
-		}
-		else
-		{
-			words_set[idx].push_back(word);
-			return;
-		}
-	}
-	size_t size = words_set[idx].size();
-	for (size_t i = 0; i < size; ++i)
-	{
-		if (i == 0 && words_set[idx][i] >= word)
-		{
-			words_set[idx].insert(words_set[idx].begin(), word);
-			return;
-		}
-		if (i == size - 1)
-		{
-			words_set[idx].push_back(word);
-			return;
-		}
-		if (words_set[idx][i] <= word && words_set[idx][i + 1] >= word)
-		{
-			words_set[idx].insert(words_set[idx].begin() + i + 1, word);
-			return;
-		}
-
-	}
-
-}
-
-void Words::recBinarySearch(unsigned idx, std::string & word, size_t left, size_t right)
-{
-	if (left >= right || words_set[idx].size() == 0) return;
+	if (left >= right || words_set.size() == 0) return;
 
 
 	size_t mid = left + ((right - left) >> 1);
-	if (words_set[idx][mid] == word)
+	if (words_set[mid] == word)
 	{
-		founded_element = words_set[idx].begin() + mid;
+		founded_element = words_set.begin() + mid;
 		return;
 	}
-	if (words_set[idx][mid] > word)
+	if (words_set[mid] > word)
 	{
-		recBinarySearch(idx, word, left, mid);
+		recBinarySearch(word, left, mid);
 		return;
 	}
 	else
 	{
-		recBinarySearch(idx, word, mid + 1, right);
+		recBinarySearch(word, mid + 1, right);
 		return;
 	}
 
@@ -434,6 +358,7 @@ void Words::recBinarySearch(unsigned idx, std::string & word, size_t left, size_
 
 Words::Words()
 {
+	
 }
 
 
@@ -442,71 +367,66 @@ Words::~Words()
 }
 
 
-const set & Words::WordsSet() const
+const std::vector <wstring> & Words::WordsSet() const
 {
 	return words_set;
 }
 
-std::string Words::GetPath() const
+std::wstring Words::GetPath() const
 {
 	return path;
 }
 
-const std::set<std::string>& Words::GetUsedWords() const
+const std::set<wstring>& Words::GetUsedWords() const
 {
 	return used_words;
 }
 
 uint64_t Words::getWordsCount() const
 {
-	return words_counter;
+	return uint64_t(words_set.size());
 }
 
 uint64_t Words::getUsedWordsCount() const
 {
-	return counter_of_used_words;
+	return uint64_t(used_words.size());
 }
 
-size_t Words::getSizeOfTable() const
+uint64_t Words::getSizeOfTable() const
 {
-	return size;
+	return uint64_t(words_set.size());
 }
 
-bool Words::isFullSave() const
-{
-	return full_save;
-}
 
-void Words::setFullSaveFlag(bool flag)
-{
-	full_save = flag;
-}
 
-void Words::inputStrParser(std::string &str)
+void Words::inputStrParser(std::wstring &str)
 {
-	std::string ansi_str = utf8_to_string(str.c_str(), std::locale(".1251"));
-	//std::transform(ansi_str.begin(), ansi_str.end(), ansi_str.data(), tolower);
-	
-
-	std::string buffer;
-	for (size_t i = 0; i < ansi_str.size(); ++i)
+	std::wstring buffer;
+	for (size_t i = 0; i < str.size(); ++i)
 	{
-		if (ansi_str[i] != ' ' && ansi_str[i] != '\n' && ansi_str[i] != '\t'  && ansi_str[i] != '\0')
-			buffer.push_back(ansi_str[i]);
+		if (str[i] != L' ' 
+			&& str[i] != L'\n'
+			&& str[i] != L'\t'  
+			&& str[i] != L'\0')
+			buffer.push_back(str[i]);
 
-		if ((ansi_str[i] == ' ' || i == ansi_str.size() - 1 || ansi_str[i] == '\n' || ansi_str[i] == '\t' || ansi_str[i] == '\0')
+		if ((str[i] == L' ' 
+			|| i == str.size() - 1 
+			|| str[i] == L'\n' 
+			|| str[i] == L'\t' 
+			|| str[i] == L'\0')
 			&& !buffer.empty())
 		{
-			std::regex rx;
+			boost::wregex rx;
 			if (isRegex(buffer, rx))
 			{
 				rx_list.push_back(rx);
-				std::transform(buffer.begin(), buffer.end(), buffer.data(), tolower);
+				std::transform(buffer.begin(), buffer.end(), buffer.data(), towlower);
 				rx_letters_list.push_back(buffer[2]);
 			}
 			else
 			{
-				std::transform(buffer.begin(), buffer.end(), buffer.data(), tolower);
+				std::transform(buffer.begin(), buffer.end(), buffer.data(), towlower);
 				list.insert(buffer);
 			}
 			buffer.clear();
@@ -518,14 +438,11 @@ void Words::splitWordsList()
 {
 	added.clear();
 	exist.clear();
-	std::string utf8_str;
+	
 	for (auto & word : list)
-	{
-		utf8_str = cp1251_to_utf8(const_cast<std::string&>(word));
-
-		
-		if (findWord(utf8_str)) exist.insert(utf8_str);
-		else added.insert(utf8_str);
+	{	
+		if (findWord(word)) exist.push_back(word);
+		else added.insert(word);
 		
 	}
 	regexProcessing();
@@ -533,61 +450,53 @@ void Words::splitWordsList()
 }
 void Words::regexProcessing()
 {
+	setlocale(LC_ALL, "");
+	std::wstring word;
 	for (size_t x = 0; x < rx_list.size(); ++x)
 	{
-		if (rx_letters_list[x] != ']')
+		if (rx_letters_list[x] != L']')
 		{
-			std::string utf8_letter = convert_1251char_to_utf8(rx_letters_list[x]);
-			unsigned idx = safeHashF(utf8_letter);
-			std::string word1251;
+			
+			unsigned idx = 0;
+			findLetter(rx_letters_list[x], &idx);
+			
+				unsigned tmp_idx = idx;
 
 
-			while (words_set[idx].size() == 0 && idx < this->size) ++idx;
-
-
-			while (1)
-			{
-				while (words_set[idx].size() == 0 && idx < this->size) ++idx;
-				if (idx == this->size) break;
-
-				word1251 = utf8_to_string(words_set[idx][0].c_str(), std::locale(".1251"));
-				if (word1251[0] != rx_letters_list[x]) break;
-
+				while (1)
+				{
+					word = words_set[idx].c_str();
+					if (word[0] != rx_letters_list[x] && word[0] != L'\0') break;
+					if (boost::regex_match(word, rx_list[x]))
+						exist.push_back(words_set[idx].c_str());
+					++idx;
+					if (idx == words_set.size() - 1) break;
+				}
 				
-				
-				if (std::regex_match(word1251, rx_list[x]))
-					exist.insert(words_set[idx][0]);
+				if (tmp_idx == 0) continue;
+				else idx = tmp_idx - 1;
 
-				size_t size = words_set[idx].size();
-				for (size_t i = 1; i < size; ++i)
+				while (1)
 				{
 					
-					word1251 = utf8_to_string(words_set[idx][i].c_str(), std::locale(".1251"));
+					word = words_set[idx].c_str();
+					if (word[0] != rx_letters_list[x] && word[0] != L'\0') break;
+					if (boost::regex_match(word, rx_list[x]))
+						exist.push_back(words_set[idx].c_str());
+					if (idx == 0) break;
+					--idx;
 					
-					if (std::regex_match(word1251, rx_list[x]))
-						exist.insert(words_set[idx][i]);
-
 				}
-
-				++idx;
-			}
+			
 		}
 		else
 		{
-			for (size_t i = 0; i < this->size; ++i)
+			for (size_t i = 0; i < words_set.size(); ++i)
 			{
-				if (words_set[i].size() == 0) continue;
+				word = words_set[i].c_str();
+				if (boost::regex_match(word, rx_list[x]))
+					exist.push_back(words_set[i].c_str());
 
-				size_t size = words_set[i].size();
-				for (size_t k = 0; k < size; ++k)
-				{
-					std::string word1251 = utf8_to_string(words_set[i][k].c_str(), std::locale(".1251"));
-
-					
-					if (std::regex_match(word1251, rx_list[x]))
-						exist.insert(words_set[i][k]);
-
-				}
 			}
 
 		}
@@ -597,68 +506,51 @@ void Words::regexProcessing()
 	rx_letters_list.clear();
 }
 
-std::string Words::createResultText()
+std::wstring& Words::createResultText()
 {
-	std::string result;
-	result += u8"Будут добавлены:\n";
+	static std::wstring result;
+	result.clear();
+	result += L"Будут добавлены:\n";
 
 	for (auto & element : added)
 	{
-		result += u8"   " + element + u8"\n";
+		result += L"   " + element + L"\n";
 	}
 
-	result += u8"\n\nУже есть:\n";
+	result += L"\n\nУже есть:\n";
 	for (auto & element : exist)
 	{
-		result += u8"   " + element + u8"\n";
+		result += L"   " + element + L"\n";
 	}
 
 	return result;
 }
 
-std::string Words::createTextOnlyExist()
+std::wstring& Words::createTextOnlyExist()
 {
-	std::string result;
-	result += u8"Успешно удалены:\n";
+	static std::wstring result;
+	result.clear();
+	result += L"Успешно удалены:\n";
 	for (auto & element : exist)
 	{
-		result += u8"   " + element + u8"\n";
+		result += L"   " + element + L"\n";
 	}
 
 	return result;
 }
 
-std::string Words::createTextOnlyAdded()
+std::wstring& Words::createTextOnlyAdded()
 {
-	std::string result;
-	result += u8"Успешно добавлены:\n";
+	static std::wstring result;
+	result.clear();
+	result += L"Успешно добавлены:\n";
 	for (auto & element : added)
 	{
-		result += u8"   " + element + u8"\n";
+		result += L"   " + element + L"\n";
 	}
 	return result;
 }
 
-//hash f(x)
-unsigned Words::hashFunction(char a, char b, char c) 
-{
-	return(((static_cast<unsigned>(a) % 32) << 10) + ((static_cast<unsigned>(b) % 32) << 5) + (static_cast<unsigned>(c) % 32));
-}
-unsigned Words::hashFunction(char a, char b)
-{
-	return (((static_cast<unsigned>(a) % 32) << 10) + ((static_cast<unsigned>(b) % 32) << 5));
-}
-unsigned Words::hashFunction(char a)
-{
-	return ((static_cast<unsigned>(a) % 32) << 10);
-}
-unsigned Words::safeHashF(std::string &str)
-{
-	if (str.size() == 1) return hashFunction(str[0]);
-	if (str.size() == 2) return hashFunction(str[0], str[1]);
-	if (str.size() >= 3) return hashFunction(str[0], str[1], str[2]);
-	return 0;
-}
 
 
 
@@ -666,61 +558,50 @@ unsigned Words::safeHashF(std::string &str)
 
 //data operations
 
-void Words::setPathAndLoadData(std::string new_path)
+void Words::setPathAndLoadData(std::wstring new_path)
 {
 	unloadData();
 	path = new_path;
 	loadData();
 }
 
-void Words::setPath(std::string new_path)
+void Words::setPath(std::wstring new_path)
 {
 	path = new_path;
 }
 
 void Words::loadData() 
 {
-	words_set.resize(size);
-
-
-	std::ifstream input;
-	std::string buffer;
-	size_t buf_size = buffer.size();
-	unsigned idx;
-
+	std::wifstream input;
+	
+	input.imbue(std::locale("ru_RU.utf8"));
 	
 	input.open(path);
 	if (input.is_open()) 
 	{
 		while(true)
 		{
+			wstring buffer;
 			
-			std::getline(input, buffer, '\n');
+			input >> buffer;
 			if (input.eof()) break;
 			decode(buffer);
-			idx = safeHashF(buffer);
-			sortedInsert(idx, buffer);
-			words_counter++;
+			
+			words_set.push_back(buffer);
+			
+			
 		} 	
 	}
-	
 	input.close();
-
-
-
 }
 
 void Words::unloadData()
 {
 	if (!words_set.empty())
 	{
-		for (size_t i = 0; i < size; ++i)
-			if (!words_set[i].empty()) 
-				words_set[i].clear();
-
 		words_set.clear();
 
-		words_counter = 0;
+		
 	}
 }
 
@@ -729,21 +610,21 @@ void Words::saveData()
 
 	if (!words_set.empty())
 	{
-		std::ofstream out;
+		std::wofstream out;
+		out.imbue(std::locale("ru_RU.utf8"));
 		out.open(path, std::ios::trunc);
 		
-		for (size_t i = 0; i < size; i++)
+		
+		for (auto element : words_set)
 		{
-			for (auto element : words_set[i])
+			if (!element.empty())
 			{
-				if (element != "")
-				{
-					encode(element);
-					out << element.c_str() << std::endl;
-				}
+				encode(element);
+				out << element << std::endl;
 			}
+		}
 			
-		}
+		
 
 
 
@@ -751,51 +632,24 @@ void Words::saveData()
 	}
 }
 
-void Words::updateDataInFile()
-{
-
-	if (!total_added.empty())
-	{
-		std::ofstream out;
-		out.open(path, std::ios::app);
-
-
-		for (auto element : total_added)
-		{
-			encode(element);
-			out << element.c_str() << std::endl;
-		}
-		out.close();
-	}
-	total_added.clear();
-
-}
 
 //words
 void Words::clearUsedWordsList()
 {
-	words_counter += used_words.size();
-	for (size_t i = 0; i < used_words.size(); i) 
-	{
-		std::string str = *used_words.begin();
-		unsigned idx = safeHashF(str);
-		words_set[idx].push_back(*used_words.begin());
-		used_words.erase(used_words.begin());
-	}
-	counter_of_used_words = 0;
+	used_words.clear();
 
 }
 
 
 
-void Words::getLastChar(std::string &word, char &next_letter)
+void Words::getLastChar(const std::wstring &word, wchar_t &next_letter)
 {
 	size_t length = word.size();
 
 	for (size_t i = length - 1; i >= 0; i--) {
-		if (word[i] != 'ы'
-			&& word[i] != 'ь'
-			&& word[i] != 'ъ') {
+		if (word[i] != L'ы'
+			&& word[i] != L'ь'
+			&& word[i] != L'ъ') {
 			next_letter = word[i];
 			break;
 		}
@@ -803,68 +657,165 @@ void Words::getLastChar(std::string &word, char &next_letter)
 	}
 }
 
-bool Words::findWord(std::string &word) 
+bool Words::findLetter(wchar_t letter, unsigned * idx)
+{
+	size_t mid, 
+		right = words_set.size(),
+		left = 0;
+	mid = left + ((right - left) >> 1);
+	
+
+	while (1)
+	{
+		
+		
+		if (left >= right || words_set.size() == 0) break;
+		if (words_set[mid][0] == letter)
+		{
+			*idx = mid;
+			return true;
+		}
+		if (words_set[mid][0] > letter)
+		{
+			right = mid;
+			mid = left + ((right - left) >> 1);
+		}
+		if (words_set[mid][0] < letter)
+		{
+			left = mid + 1;
+			mid = left + ((right - left) >> 1);
+		}
+	}
+	return false;
+}
+
+bool Words::findLetter(wchar_t letter)
+{
+	size_t mid,
+		right = words_set.size(),
+		left = 0;
+	mid = left + ((right - left) >> 1);
+
+
+	while (1)
+	{
+
+
+		if (left >= right || words_set.size() == 0) break;
+		if (words_set[mid][0] == letter)
+		{
+			return true;
+		}
+		if (words_set[mid][0] > letter)
+		{
+			right = mid;
+			mid = left + ((right - left) >> 1);
+		}
+		if (words_set[mid][0] < letter)
+		{
+			left = mid + 1;
+			mid = left + ((right - left) >> 1);
+		}
+	}
+	return false;
+}
+
+bool Words::findWord(const std::wstring &word) 
 {
 	
-	unsigned idx = safeHashF(word);
-	founded_element = words_set[idx].end();
-	/*for (auto it = words_set[idx].begin(); it != words_set[idx].end(); ++it)
-	{
-		if (*it == word)
-		{
-			founded_element = it;
-			break;
-		}
-	}*/
-	recBinarySearch(idx, word, 0, words_set[idx].size());
-	if(founded_element == words_set[idx].end()) return false;
+	wstring w(word);
+	founded_element = words_set.end();
+	recBinarySearch(w, 0, words_set.size());
+	if(founded_element == words_set.end()) return false;
 	return true;
 }
 
 
 void Words::addWords()
 {
-	unsigned idx;
+	
+	
+	unsigned idx = 0;
 	if (added.size() > 0)
 	{
 		for (auto it = added.begin(); it != added.end(); ++it)
 		{
-			total_added.insert(*it);
-			std::string str = *it;
-			idx = safeHashF(str);
-			sortedInsert(idx, str);
-			++words_counter;
+			wstring s(it->c_str());
+			
+			
+			
+			if (words_set.size() - 1 == idx || words_set.size() == 0)
+			{
+				words_set.push_back(it->c_str());
+				continue;
+			}
 
+			while (s[0] < words_set[idx][0] 
+				&& idx < words_set.size() - 1 
+				&& s[1] < words_set[idx][1]) ++idx;
+
+			
+			
+			
+			if (s <= words_set[0])
+			{
+				words_set.insert(words_set.begin(), it->c_str());
+				continue;
+			}
+			while (1)
+			{
+				
+				if (idx == words_set.size() - 1)
+				{
+					words_set.push_back(s);
+					break;
+				}
+				
+				if ((s <= words_set[idx + 1] && s >= words_set[idx]))
+				{
+					words_set.insert(words_set.begin() + idx, s);
+					break;
+				}
+				++idx;
+				
+
+			}
+			
+			
 		}
+		
 	}
 }
 
 void Words::delWords()
 {
-	unsigned idx;
+	
 	if (exist.size() > 0)
 	{
 		for (auto it = exist.begin(); it != exist.end(); ++it)
 		{
-			std::string str = *it;
-			findWord(str);
-			idx = safeHashF(str);
-			words_set[idx].erase(founded_element);
-			--words_counter;
+			std::wstring target = *it;
+
+			if (findWord(target))
+			{
+				words_set.erase(founded_element);
+				
+			}
 		}
 	}
 }
 
 void Words::useThisWord()
 {
-	--words_counter;
+	
 	used_words.insert(*founded_element);
-	unsigned idx = safeHashF(*founded_element);
-	words_set[idx].erase(founded_element);
-	++counter_of_used_words;
+	words_set.erase(founded_element);
+	
 }
 
-void Words::useThisWord(std::string & word)
+void Words::useThisWord(const std::wstring & word)
 {
 	if (findWord(word)) useThisWord();
 }
+
+

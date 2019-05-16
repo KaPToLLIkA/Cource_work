@@ -12,7 +12,7 @@ private:
 	float text_col[3] =			{ 1.f, 1.f, 1.f };
 	float header_col[4] =		{ 0.f, 0.f, 0.f, 0.85f };
 	
-	std::string* printed_word = nullptr;
+	std::wstring* printed_word = nullptr;
 	std::array <char, 128>  buffer;
 	bool keyboard_focus = false;
 	bool first_show_light = true;
@@ -29,7 +29,7 @@ public:
 
 	Player();
 	Player(	std::string  name, 
-			std::string* printed_word);
+			std::wstring* printed_word);
 	Player(const Player &obj);
 
 	Player &operator=(const Player &right);

@@ -2,31 +2,9 @@
 #include "pch.h"
 
 
-bool Game::findLetter(unsigned *idx)
-{
-	size_t sz = category.getSizeOfTable();
-	for (size_t i = 0; i < sz; ++i)
-	{
-		if (category.WordsSet()[i].size() == 0)
-			continue;
-		if (category.WordsSet()[i][0][0] == letter_utf8[0])
-		{
-			std::string letter = utf8_to_string(letter_utf8.c_str(), std::locale(".1251"));
-			std::string letter_in_table = utf8_to_string(category.WordsSet()[i][0].c_str(), std::locale(".1251"));
-
-			if (letter_in_table[0] == letter[0])
-			{
-				if (idx != nullptr) *idx = i;
-				return true;
-			}
-
-		}
 
 
-	}
-	return false;
-	
-}
+
 
 void Game::NextPlayer()
 {
@@ -50,16 +28,13 @@ Game::Game()
 
 	for (auto path : categories_paths)
 	{	
-		std::string str = getFilename(path);
-		str = cp1251_to_utf8(str);
-		categories_names.push_back(str);
+		categories_names.push_back(getFilename(path));
 	}
 
 	for (auto path : saves_paths)
 	{
-		std::string str = getFilename(path);
-		str = cp1251_to_utf8(str);
-		saves_names.push_back(str);
+		
+		saves_names.push_back(getFilename(path));
 	}
 	
 }
@@ -74,30 +49,27 @@ std::string Game::getUtf8Letter()
 	return letter_utf8;
 }
 
-Words & Game::getCategory()
-{
-	return category;
-}
 
 
 
-void Game::SaveGame(std::string & file_name)
+void Game::SaveGame(std::wstring & file_name)
 {
 	
-	std::string way;
+	std::wstring way;
 	
 	way = createWayToNewSave(file_name);
 	saves_paths.push_back(way);
 	saves_names.push_back(file_name);
 
 
-	std::string way_to_categ = category.GetPath();
+	std::wstring way_to_categ = category.GetPath();
 	std::ofstream save(way, std::ios::trunc);
+	save.imbue(std::locale("rus_rus.866"));
 	std::string last_letter_utf8 = letter_utf8;
-	char buf[2];
+	wchar_t buf[2];
 	buf[0] = next_letter;
-	buf[1] = '\0';
-	std::string last_letter_1251 = buf;
+	buf[1] = L'\0';
+	std::string last_letter_1251 = wstring_to_utf8(buf);
 	std::string disabled_count   = std::to_string(disabled_players_counter);
 	std::string current_player   = std::to_string(current_player_id);
 	std::string bot_said_        = bot_said;
@@ -115,7 +87,7 @@ void Game::SaveGame(std::string & file_name)
 	encode(bot_score_);
 	encode(players_count);
 
-	save << way_to_categ     << std::endl;
+	save << wstring_to_utf8(way_to_categ.c_str())     << std::endl;
 	save << last_letter_utf8 << std::endl;
 	save << last_letter_1251 << std::endl;
 	save << disabled_count   << std::endl;
@@ -146,10 +118,10 @@ void Game::SaveGame(std::string & file_name)
 	
 
 
-	const std::set <std::string> words = category.GetUsedWords();
+	const std::set <wstring> words = category.GetUsedWords();
 	for (auto it = words.begin(); it != words.end(); ++it)
 	{
-		std::string word = *it;
+		std::string word = wstring_to_utf8(it->c_str());
 		encode(word);
 		save << word << std::endl;
 	}
@@ -172,6 +144,7 @@ void Game::SaveGame(std::string & file_name)
 	can_t_find_word = false;
 	bot_losed = false;
 	game_ended = true;
+	show_result_of_game = false;
 	bot_lvl = 2;
 	bot_scores = 10;
 	bot_said.clear();
@@ -180,12 +153,15 @@ void Game::SaveGame(std::string & file_name)
 bool Game::LoadGame(int idx_of_save)
 {
 	player_and_score.clear();
-	std::stringstream conv;
+	
 	std::ifstream save(saves_paths[idx_of_save]);
+	save.imbue(std::locale("rus_rus.866"));
 	if (save.is_open())
 	{
-		std::string way_to_categ;
-		std::getline(save, way_to_categ, '\n');
+		std::wstring way_to_categ;
+		std::string tmp;
+		std::getline(save, tmp, '\n');
+		way_to_categ = utf8_to_wstring(tmp.c_str());
 		decode(way_to_categ);
 		bool exist = false;
 		for (size_t i = 0; i < categories_paths.size(); ++i)
@@ -200,7 +176,7 @@ bool Game::LoadGame(int idx_of_save)
 		if (!exist)
 		{
 			save.close();
-			remove(saves_paths[idx_of_save].c_str());
+			std::filesystem::remove(std::filesystem::path(saves_paths[idx_of_save].c_str()));
 			saves_names.erase(saves_names.begin() + idx_of_save);
 			saves_paths.erase(saves_paths.begin() + idx_of_save);
 			return false;
@@ -217,43 +193,36 @@ bool Game::LoadGame(int idx_of_save)
 
 			std::getline(save, buf_letter, '\n');
 			decode(buf_letter);
-			next_letter = buf_letter[0];
+			next_letter = utf8_to_wstring(buf_letter.c_str())[0];
 
 
 			std::getline(save, number_buffer, '\n');
 			decode(number_buffer);
-			conv << number_buffer;
-			conv >> disabled_players_counter;
-			conv.clear();
+			
+			disabled_players_counter = std::atol(number_buffer.c_str());
+			
 
 
 			std::getline(save, number_buffer, '\n');
 			decode(number_buffer);
-			conv << number_buffer;
-			conv >> current_player_id;
-			conv.clear();
+			current_player_id = std::atol(number_buffer.c_str());
+			
 
 			std::getline(save, bot_said, '\n');
 			decode(bot_said);
 
 			std::getline(save, number_buffer, '\n');
 			decode(number_buffer);
-			conv << number_buffer;
-			conv >> bot_lvl;
-			conv.clear();
-
+			bot_lvl = std::atol(number_buffer.c_str());
+			
 			std::getline(save, number_buffer, '\n');
 			decode(number_buffer);
-			conv << number_buffer;
-			conv >> bot_scores;
-			conv.clear();
-
+			bot_scores = std::atol(number_buffer.c_str());
+			
 			std::getline(save, number_buffer, '\n');
 			decode(number_buffer);
-			conv << number_buffer;
-			conv >> players_count;
-			conv.clear();
-
+			players_count = std::atol(number_buffer.c_str());
+			
 
 			all_players.clear();
 			all_players.resize(players_count);
@@ -282,24 +251,18 @@ bool Game::LoadGame(int idx_of_save)
 
 				Player player(name, &printed_word);
 				all_players[i] = player;
-				conv << score;
-				uint64_t s;
-				conv >> s;
-				all_players[i].setScore(s);
-				conv.clear();
 				
-				conv << enable;
-				conv >> enable_;
-				conv.clear();
+				uint64_t s = std::atoll(score.c_str());;
+				
+				all_players[i].setScore(s);
+				
+				enable_ = std::atoi(enable.c_str());;
 				
 				
 				for (size_t i = 0; i < 11; ++i)
 				{
 					std::getline(save, colors, '\n');
-					conv << colors;
-					conv >> col[i];
-					conv.clear();
-
+					col[i] = (float)std::atof(colors.c_str());;
 				}
 
 
@@ -311,14 +274,16 @@ bool Game::LoadGame(int idx_of_save)
 			category.setPathAndLoadData(way_to_categ);
 			game_ended = false;
 
+			std::wstring str;
 			std::string buffer;
 			while (1)
 			{
 				std::getline(save, buffer, '\n');
 				if (save.eof()) break;
-
+				
 				decode(buffer);
-				category.useThisWord(buffer);
+				str = utf8_to_wstring(buffer.c_str());
+				category.useThisWord(str);
 			}
 
 			all_players_disabled = true;
@@ -332,7 +297,7 @@ bool Game::LoadGame(int idx_of_save)
 		catch (...)
 		{
 			save.close();
-			remove(saves_paths[idx_of_save].c_str());
+			std::filesystem::remove(std::filesystem::path(saves_paths[idx_of_save].c_str()));
 			saves_names.erase(saves_names.begin() + idx_of_save);
 			saves_paths.erase(saves_paths.begin() + idx_of_save);
 			all_players.clear();
@@ -447,29 +412,29 @@ bool Game::StartGame(sf::Vector2i window_pos,
 	category.setPathAndLoadData(categories_paths[idx_of_choosed_category]);
 	loading_window_started = false;
 	words_counter = category.getWordsCount();
-	for (size_t i = 0; i < category.getSizeOfTable(); ++i)
-	{
-		if (!category.WordsSet()[i].empty())
-		{
-			std::string word = utf8_to_string(category.WordsSet()[i][0].c_str(), std::locale(".1251"));
-			if (word.size() >= 1)
-			{
-				next_letter = word[0];
-				letter_utf8 = convert_1251char_to_utf8(next_letter);
-				break;
-			}
-		}
-
-	}
-
 	if (category.getWordsCount() < 100)
 	{
 		game_ended = true;
 		this->bot_lvl = 2;
-		
+
 		category.unloadData();
 		return false;
 	}
+
+	for (size_t i = 0; i < category.getSizeOfTable(); ++i)
+	{
+		
+		if (category.WordsSet()[i].size() >= 1)
+		{
+			next_letter = category.WordsSet()[i][0];
+			letter_utf8 = wchar_to_utf8(next_letter);
+			break;
+		}
+		
+
+	}
+
+	
 	return true;
 }
 
@@ -495,33 +460,21 @@ void Game::CheckPrintedWord(bool &answer)
 {
 	if(word_printed)
 	{
-		std::string str = utf8_to_string(printed_word.c_str(), std::locale(".1251"));
-		
-		std::transform(str.begin(), str.end(),  str.data(), tolower);
-		
-		char*buffer = new char[str.size() * 4];
-		ZeroMemory(buffer, str.size() * 4);
-		cp1251_to_utf8(buffer, str.c_str());
-		
-		std::memcpy(printed_word.data(), buffer, strlen(buffer));
-		
 
-		delete[] buffer;
-
-		if (!findLetter())
+		if (!category.findLetter(this->next_letter))
 		{
 			can_t_find_word = true;
 			return;
 		}
 
-		if (category.findWord(printed_word) && next_letter == str[0]) {
+		if (category.findWord(printed_word) && next_letter == printed_word[0]) {
 			
 
 			category.useThisWord();
-			category.getLastChar(str, next_letter);
+			category.getLastChar(printed_word, next_letter);
 
 			
-			letter_utf8 = convert_1251char_to_utf8(next_letter);
+			letter_utf8 = wchar_to_utf8(next_letter);
 
 			all_players[current_player_id].incScore();
 
@@ -645,46 +598,29 @@ void Game::ShowBot()
 	{
 		if ((rand() % (bot_lvl * bot_lvl - (bot_lvl - 1) * 2)) == 0)
 		{
-			/*unsigned idx = category.safeHashF(letter_utf8);
-
-			std::string word;
-			while (true) {
-				if (category.WordsSet()[idx].size() > 0)
-				{
-
-					word = *category.WordsSet()[idx].begin();
-					std::string str = utf8_to_string(word.c_str(), std::locale(".1251"));
-					if (next_letter == str[0])
-					{
-						category.useThisWord(word);
-						++bot_scores;
-						category.getLastChar(str, next_letter);
-						letter_utf8 = convert_1251char_to_utf8(next_letter);
-
-						break;
-					}
-					else
-					{
-						can_t_find_word = true;
-						break;
-					}
-				}
-				idx++;
-				if (idx >= category.getSizeOfTable())
-				{
-					can_t_find_word = true;
-					break;
-				}
-			}*/
 			unsigned idx = 0;
-			if (findLetter(&idx))
+			if (category.findLetter(this->next_letter, &idx))
 			{
-				bot_said = *category.WordsSet()[idx].begin();
-				category.useThisWord(bot_said);
-				std::string str = utf8_to_string(bot_said.c_str(), std::locale(".1251"));
-				category.getLastChar(str, next_letter);
-				letter_utf8 = convert_1251char_to_utf8(next_letter);
-				++bot_scores;
+				bot_said = wstring_to_utf8(category.WordsSet()[idx].c_str());
+				
+				if (bot_said.empty())
+				{
+					bot_said = u8"Я ошибся.";
+					--bot_scores;
+					if (bot_scores == 0)
+					{
+						bot_losed = true;
+						bot_said = u8"Я проиграл.";
+					}
+				}
+				else
+				{
+					std::wstring str = category.WordsSet()[idx].c_str();
+					category.useThisWord(str);
+					category.getLastChar(str, next_letter);
+					letter_utf8 = wchar_to_utf8(next_letter);
+					++bot_scores;
+				}
 
 			}
 			else can_t_find_word = true;

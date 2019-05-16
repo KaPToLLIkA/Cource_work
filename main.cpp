@@ -1,8 +1,9 @@
 #include "pch.h"
 #include <condition_variable>
-#include <iostream>
 #include <future>
 #include <chrono>
+#include <thread>
+#include <mutex>
 
 
 #include "portable-file-dialogs.h"
@@ -22,7 +23,7 @@ static std::array <char, 512> user_name_arr;
 
 static Game  game;
 
-static std::string save_name_str;
+static std::wstring save_name_str;
 static std::array<char, 512> save_name_arr;
 
 static bool load_save = false;
@@ -54,15 +55,15 @@ namespace categEditor
 
 	static size_t choosed_category = 0;
 	static Words  changeable_category;
-	static std::string category_name_str;
+	static std::wstring category_name_str;
 	static std::array <char, 512> category_name_arr;
-	static std::string rename_buf_str;
+	static std::wstring rename_buf_str;
 	static std::array <char, 512> rename_buf_arr;
 
 
 }
 namespace wordsBuf {
-	static const size_t input_words_buffer_size = 10240000;
+	static const size_t input_words_buffer_size  = 80960000;
 	static char* input_words_buffer = new char[input_words_buffer_size];
 	
 }
@@ -120,9 +121,8 @@ namespace windowSize
 }
 namespace pathes 
 {
-	static std::vector <std::string> music_path;
-	static std::vector <std::string> image_path;
-	static std::vector <std::string> addicted_image_pathes;
+	static std::vector <std::wstring> music_path;
+	static std::vector <std::wstring> image_path;
 }
 namespace bmpScreen 
 {
@@ -258,8 +258,7 @@ int main()
 											std::ref(start_loading_window));
 	
 	
-	//search of files
-	LoadAddictedImagePaths(pathes::addicted_image_pathes);
+	
 
 	GetImagesPathes(pathes::image_path);
 	GetMusicPathes(pathes::music_path, sounds::playlist);
@@ -277,8 +276,7 @@ int main()
 	ImGui::SFML::Init(window, false);
 	
 	LoadAllBackgroundTextures(res::texture::all_backgrounds,
-                              pathes::image_path,
-                              pathes::addicted_image_pathes);
+                              pathes::image_path);
 
 	
 	
@@ -376,7 +374,7 @@ int main()
 		}
 		if (static_background)
 		{
-
+			if (current_background >= res::sprite::all_backgrounds.size()) current_background = res::sprite::all_backgrounds.size() - 1;
 			res::sprite::static_background = SetBackgrounSprite(res::sprite::all_backgrounds[current_background],
 				windowSize::const_current);
 		}
@@ -397,9 +395,9 @@ int main()
 		{
 			ImGui::SFML::ProcessEvent(event);
 
-			if (event.type == sf::Event::Closed) 
+			if (event.type == sf::Event::Closed && !msgBoxFlags::msg_box_opend)
 			{
-				if (showParams::close_program_button_enabled && !showParams::show_category_redo) 
+				if (showParams::close_program_button_enabled && !showParams::show_category_redo)
 				{
 					WakeMsgBoxSoundThread();
 					msgBoxFlags::msg_box_opend = true;
@@ -417,6 +415,7 @@ int main()
 					msgBoxFlags::exit_categoty_redo = true;
 					WakeMsgBoxSoundThread();
 				}
+			
 			}
 			if (event.type == sf::Event::Resized) 
 			{
@@ -616,8 +615,7 @@ int main()
 					DeleteBackground(choosed_background,
                                      res::texture::all_backgrounds,
                                      res::sprite::all_backgrounds,
-                                     pathes::image_path,
-                                     pathes::addicted_image_pathes, true);
+                                     pathes::image_path);
 					if (!res::sprite::all_backgrounds.empty() && choosed_background == current_background)
 					{
 						if (current_background >= res::sprite::all_backgrounds.size())
@@ -637,35 +635,6 @@ int main()
 					}
 				}
 			}
-			else if (msgBoxFlags::really_exclude) 
-			{
-				bool exclude = false;
-				QuestionBox(res::sprite::question_box, "?", u8"Исключить?", exclude);
-
-				if (exclude) 
-				{
-					DeleteBackground(choosed_background,
-						res::texture::all_backgrounds,
-						res::sprite::all_backgrounds,
-						pathes::image_path,
-						pathes::addicted_image_pathes);
-					if (!res::sprite::all_backgrounds.empty() && choosed_background == current_background) 
-					{
-						if (current_background >= res::sprite::all_backgrounds.size()) 
-							current_background = res::sprite::all_backgrounds.size() - 1;
-						
-							
-						res::sprite::static_background = SetBackgrounSprite(res::sprite::all_backgrounds[current_background],
-							windowSize::const_current);
-					}
-					else if (!res::sprite::all_backgrounds.empty() && choosed_background < current_background)
-					{
-						current_background = (current_background == 0) ? 0 : current_background - 1;
-						res::sprite::static_background = SetBackgrounSprite(res::sprite::all_backgrounds[current_background],
-							windowSize::const_current);
-					}
-				}
-			}
 			else if (msgBoxFlags::delete_word)
 			{
 				QuestionBox(res::sprite::question_box, "You sure?", u8"Удалить слова?",
@@ -675,18 +644,18 @@ int main()
 				{
 					showParams::show_only_clear = true;
 					showParams::category_enable_save = true;
-					categEditor::changeable_category.setFullSaveFlag(true);
+					
 					start_loading_window = true;
-					categEditor::changeable_category.delWords();
+					
 
 					auto f = std::async(std::launch::async, LoadingWindow,
 										window.getPosition(),
 										windowSize::current,
 										std::ref(start_loading_window));
 
-
-					std::string input = categEditor::changeable_category.createTextOnlyExist();
-
+					categEditor::changeable_category.delWords();
+					std::wstring t = categEditor::changeable_category.createTextOnlyExist();
+					std::string input = wstring_to_utf8(t.c_str());
 					ZeroMemory(wordsBuf::input_words_buffer, wordsBuf::input_words_buffer_size);
 					if (wordsBuf::input_words_buffer_size > input.size())
 						std::memcpy(wordsBuf::input_words_buffer, input.c_str(),
@@ -718,7 +687,8 @@ int main()
 						windowSize::current,
 						std::ref(start_loading_window));
 
-					std::string input = categEditor::changeable_category.createTextOnlyAdded();
+					std::wstring t = categEditor::changeable_category.createTextOnlyAdded();
+					std::string input = wstring_to_utf8(t.c_str());
 					categEditor::changeable_category.addWords();
 
 					ZeroMemory(wordsBuf::input_words_buffer, wordsBuf::input_words_buffer_size);
@@ -751,7 +721,7 @@ int main()
 					showParams::category_enable_save = false;
 					showParams::category_enable_search = true;
 
-					categEditor::changeable_category.setFullSaveFlag(false);
+					
 					categEditor::changeable_category.unloadData();
 
 
@@ -766,7 +736,7 @@ int main()
 
 				if (showParams::del_category)
 				{
-					remove(game.categories_paths[categEditor::choosed_category].c_str());
+					std::filesystem::remove(std::filesystem::path(game.categories_paths[categEditor::choosed_category]));
 					game.categories_paths.erase(game.categories_paths.begin() + categEditor::choosed_category);
 					game.categories_names.erase(game.categories_names.begin() + categEditor::choosed_category);
 
@@ -821,7 +791,7 @@ int main()
 
 				if (del_save)
 				{
-					remove(game.saves_paths[idx_of_save].c_str());
+					std::filesystem::remove(std::filesystem::path(game.saves_paths[idx_of_save]));
 					game.saves_names.erase(game.saves_names.begin() + idx_of_save);
 					game.saves_paths.erase(game.saves_paths.begin() + idx_of_save);
 					del_save = false;
@@ -949,7 +919,7 @@ int main()
                              static_background,
                              current_background);
 
-			UnLoadAddictedImagePaths(pathes::addicted_image_pathes);
+			
 			
 			sounds::main_theme_track.stop();
 			sounds::show_msg_box.sound.setVolume(0.f);
@@ -1666,9 +1636,11 @@ void ShowSettings(sf::RenderWindow &window)
 				
 				if (!file.result().empty())
 				{
-					pathes::addicted_image_pathes.push_back(file.result()[0]);
+					std::string path_1251 = file.result()[0];
+					std::wstring path = utf8_to_wstring(path_1251.c_str());
+					pathes::image_path.push_back(path);
 
-					AddBackground(file.result()[0],
+					AddBackground(path,
 						res::texture::all_backgrounds,
 						res::sprite::all_backgrounds);
 					if (res::sprite::all_backgrounds.size() == 1) {
@@ -1687,11 +1659,11 @@ void ShowSettings(sf::RenderWindow &window)
 			ImGui::BeginChild("##columns", ImVec2(0, img_size.y * 3 + ImGui::GetStyle().ItemSpacing.y * 4), false,
 				ImGuiWindowFlags_::ImGuiWindowFlags_HorizontalScrollbar);
 			{
-				ImGui::Columns(4, "##images", false);
+				ImGui::Columns(3, "##images", false);
 				ImGui::SetColumnWidth(0, img_size.x);
-				ImGui::SetColumnWidth(1, img_size.x / 2);
-				ImGui::SetColumnWidth(2, img_size.x / 2);
-				ImGui::SetColumnWidth(3, img_size.x / 2);
+				ImGui::SetColumnWidth(1, img_size.x / 1.2f);
+				ImGui::SetColumnWidth(2, img_size.x / 1.2f);
+				
 
 				size_t counter = res::sprite::all_backgrounds.size();
 				for (size_t i = 0; i < counter; i++) 
@@ -1703,7 +1675,7 @@ void ShowSettings(sf::RenderWindow &window)
 
 
 
-					if (ImGui::Button(u8"Выбрать##images", ImVec2(img_size.x / 2, img_size.y))) 
+					if (ImGui::Button(u8"Выбрать##images", ImVec2(img_size.x / 1.2f, img_size.y)))
 					{
 						res::sprite::static_background = SetBackgrounSprite(res::sprite::all_backgrounds[i],
 							windowSize::const_current);
@@ -1716,29 +1688,10 @@ void ShowSettings(sf::RenderWindow &window)
 
 
 
-					if (ImGui::Button(u8"Исключить##images", ImVec2(img_size.x / 2, img_size.y))) 
-						{
-							msgBoxFlags::msg_box_opend = true;
-							msgBoxFlags::really_exclude = true;
-							WakeMsgBoxSoundThread();
-							choosed_background = i;
-							sounds::button_click.sound.play();
-						}
-					if (ImGui::IsItemHovered()) 
-					{
-						ImGui::BeginTooltip();
-						ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-						ImGui::TextUnformatted(u8"Исключит добавленное изображение из списка\n(изображения в папке с игрой добавятся автоматически\nпри следующем запуске)");
-						ImGui::PopTextWrapPos();
-						ImGui::EndTooltip();
-					}
-					ImGui::NextColumn();
 
 
 
-
-
-					if (ImGui::Button(u8"Удалить##images", ImVec2(img_size.x / 2, img_size.y))) {
+					if (ImGui::Button(u8"Удалить##images", ImVec2(img_size.x / 1.2f, img_size.y))) {
 							msgBoxFlags::msg_box_opend = true;
 							msgBoxFlags::really_delete = true;
 							
@@ -1746,14 +1699,6 @@ void ShowSettings(sf::RenderWindow &window)
 							choosed_background = i;
 
 							sounds::button_click.sound.play();
-						}
-					if (ImGui::IsItemHovered()) 
-					{
-						ImGui::BeginTooltip();
-						ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-						ImGui::TextUnformatted(u8"Удалит изображение с диска");
-						ImGui::PopTextWrapPos();
-						ImGui::EndTooltip();
 					}
 					ImGui::NextColumn();
 
@@ -2040,7 +1985,7 @@ void ShowAddPlayerMenu() {
 			|| ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_::ImGuiKey_Enter), false))
 		{
 			user_name_str = user_name_arr.data();
-			sounds::button_click.sound.play();
+			
 			if (!user_name_str.empty()) 
 			{
 				added = true;
@@ -2061,7 +2006,7 @@ void ShowAddPlayerMenu() {
 		ImGui::Separator();
 
 
-		if (ImGui::Button(u8"Закрыть меню", ImVec2(320.f - 2.f * ImGui::GetStyle().ItemSpacing.x, 30.f)))
+		if (ImGui::Button(u8"Закрыть", ImVec2(320.f - 2.f * ImGui::GetStyle().ItemSpacing.x, 30.f)))
 		{
 			showParams::show_add_player_menu = false;
 			sounds::button_click.sound.play();
@@ -2197,7 +2142,7 @@ void ShowCategorySettings(sf::Vector2i wnd_pos)
 			
 			ImGui::SameLine();
 			ImGui::SetCursorPosX(ImGui::GetStyle().ItemInnerSpacing.x*3);
-			ImGui::Text(game.categories_names[i].c_str());
+			ImGui::Text(wstring_to_utf8(game.categories_names[i].c_str()).c_str());
 			ImGui::Separator();
 			
 
@@ -2221,7 +2166,7 @@ void ShowCategorySettings(sf::Vector2i wnd_pos)
 			|| ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_::ImGuiKey_Enter), false))
 		{
 			sounds::button_click.sound.play();
-			categEditor::category_name_str = categEditor::category_name_arr.data();
+			categEditor::category_name_str = utf8_to_wstring(categEditor::category_name_arr.data());
 			if (!categEditor::category_name_str.empty())
 			{
 				bool exist = false;
@@ -2230,7 +2175,7 @@ void ShowCategorySettings(sf::Vector2i wnd_pos)
 				if (!exist)
 				{
 					game.categories_names.push_back(categEditor::category_name_str);
-					std::string path = createWayToNewCategory(categEditor::category_name_str);
+					std::wstring path = createWayToNewCategory(categEditor::category_name_str);
 					game.categories_paths.push_back(path);
 					std::ofstream file(path);
 					file << '\0';
@@ -2407,7 +2352,7 @@ void ShowCategorySettings(sf::Vector2i wnd_pos)
 				showParams::category_enable_save         = false;
 				showParams::category_enable_search       = true;
 
-				categEditor::changeable_category.setFullSaveFlag(false);
+				
 				categEditor::changeable_category.unloadData();
 
 			}
@@ -2443,10 +2388,11 @@ void ShowCategorySettings(sf::Vector2i wnd_pos)
 					std::ref(start_loading_window));
 
 
-				std::string input = wordsBuf::input_words_buffer;
-				categEditor::changeable_category.inputStrParser(input);
+				std::wstring scr = utf8_to_wstring(wordsBuf::input_words_buffer);
+				categEditor::changeable_category.inputStrParser(scr);
 				categEditor::changeable_category.splitWordsList();
-				input = categEditor::changeable_category.createResultText();
+				scr = categEditor::changeable_category.createResultText();
+				std::string input = wstring_to_utf8(scr.c_str());
 
 				ZeroMemory(wordsBuf::input_words_buffer, wordsBuf::input_words_buffer_size);
 				if (wordsBuf::input_words_buffer_size > input.size())
@@ -2494,6 +2440,12 @@ void ShowCategorySettings(sf::Vector2i wnd_pos)
 			if (ImGui::Button(u8"Сохранить и выйти", { 750.f - 2.f * spacing, 26.f })
 				&& showParams::category_enable_save)
 			{
+				start_loading_window = true;
+				auto f = std::async(std::launch::async, LoadingWindow,
+					wnd_pos,
+					windowSize::current,
+					std::ref(start_loading_window));
+
 				sounds::button_click.sound.play();
 				showParams::show_category_redo           = false;
 				showParams::show_category_choose         = true;
@@ -2503,20 +2455,9 @@ void ShowCategorySettings(sf::Vector2i wnd_pos)
 				showParams::category_enable_deleting     = false;
 				showParams::category_enable_save         = false;
 				showParams::category_enable_search       = true;
-				if (categEditor::changeable_category.isFullSave())
-				{
-					categEditor::changeable_category.saveData();
-					categEditor::changeable_category.unloadData();
-
-					categEditor::changeable_category.setFullSaveFlag(false);
-
-				}
-				else
-				{
-					categEditor::changeable_category.updateDataInFile();
-					categEditor::changeable_category.unloadData();
-
-				}
+				categEditor::changeable_category.saveData();
+				categEditor::changeable_category.unloadData();
+				start_loading_window = false;
 			}
 			else if (!showParams::category_enable_save) ImGui::PopStyleColor(3);
 			
@@ -2575,7 +2516,7 @@ void ShowRenameDialog(sf::Vector2i wnd_pos)
 		if (ImGui::Button(u8"Применить", ImVec2((600.f - 3.f * ImGui::GetStyle().ItemSpacing.x) / 2.f, 30.f))
 			|| ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_::ImGuiKey_Enter), false))
 		{
-			categEditor::rename_buf_str = categEditor::rename_buf_arr.data();
+			categEditor::rename_buf_str = utf8_to_wstring(categEditor::rename_buf_arr.data());
 			sounds::button_click.sound.play();
 			
 			if (!categEditor::rename_buf_str.empty())
@@ -2588,7 +2529,7 @@ void ShowRenameDialog(sf::Vector2i wnd_pos)
 					if (game.categories_names[i] == categEditor::rename_buf_str) exist = true;
 				if (!exist)
 				{
-					std::string new_path = createWayToNewCategory(categEditor::rename_buf_str);
+					std::wstring new_path = createWayToNewCategory(categEditor::rename_buf_str);
 					if (categEditor::do_duplicate)
 					{
 						start_loading_window = true;
@@ -2610,9 +2551,8 @@ void ShowRenameDialog(sf::Vector2i wnd_pos)
 					else
 					{
 						
-
-						rename(game.categories_paths[categEditor::choosed_category].c_str(),
-							new_path.c_str());
+						std::filesystem::rename(std::filesystem::path(game.categories_paths[categEditor::choosed_category].c_str()),
+							std::filesystem::path(new_path.c_str()));
 						game.categories_paths[categEditor::choosed_category] = new_path;
 						game.categories_names[categEditor::choosed_category] = categEditor::rename_buf_str;
 					}
@@ -2737,7 +2677,7 @@ void ShowStartGameDialog(sf::Vector2i wnd_pos)
 
 			ImGui::SameLine();
 			ImGui::SetCursorPosX(ImGui::GetStyle().ItemSpacing.x * 2);
-			ImGui::Text(game.categories_names[i].c_str());
+			ImGui::Text(wstring_to_utf8(game.categories_names[i].c_str()).c_str());
 			ImGui::Separator();
 
 
@@ -2868,7 +2808,7 @@ void ShowSaveMenu(sf::Vector2i wnd_pos)
 		if (ImGui::Button(u8"Сохранить и выйти", ImVec2((600.f - 3.f * ImGui::GetStyle().ItemSpacing.x) / 2.f, 30.f))
 			|| ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_::ImGuiKey_Enter), false))
 		{
-			save_name_str = save_name_arr.data();
+			save_name_str = utf8_to_wstring(save_name_arr.data());
 			sounds::button_click.sound.play();
 
 			if (!save_name_str.empty())
@@ -2904,7 +2844,6 @@ void ShowSaveMenu(sf::Vector2i wnd_pos)
 
 
 			}
-			ZeroMemory(save_name_arr.data(), save_name_arr.size());
 
 			keyboard_focus = true;
 		}
@@ -2986,7 +2925,7 @@ void ShowLoadGameMenu()
 			
 			ImGui::SameLine();
 			ImGui::SetCursorPosX(ImGui::GetStyle().ItemSpacing.x * 4.f + 200.f);
-			ImGui::Text(game.saves_names[i].c_str());
+			ImGui::Text(wstring_to_utf8(game.saves_names[i].c_str()).c_str());
 			
 
 			ImGui::Separator();

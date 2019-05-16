@@ -35,7 +35,7 @@ Player::Player()
 }
 
 Player::Player(std::string  name,
-               std::string* printed_word):	name(name),
+               std::wstring* printed_word):	name(name),
 											printed_word(printed_word)					
 {
 	ZeroMemory(buffer.data(), buffer.size());
@@ -136,7 +136,7 @@ void Player::ShowLight(bool &word_printed, std::string letter)
 			|| ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_::ImGuiKey_Enter), false))
 		{
 
-			*printed_word = buffer.data();
+			*printed_word = utf8_to_wstring(buffer.data());
 			if(!(printed_word->empty())) word_printed = true;
 			ZeroMemory(buffer.data(), buffer.size());
 			keyboard_focus = true;

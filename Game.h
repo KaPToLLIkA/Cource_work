@@ -19,8 +19,8 @@ private:
 	sf::Texture bot_tex;
 	sf::Sprite  bot_sp;
 
-	char next_letter;
-	std::string printed_word;
+	wchar_t next_letter;
+	std::wstring printed_word;
 	std::string letter_utf8;
 	std::string bot_said;
 	size_t bot_scores = 10;
@@ -31,7 +31,7 @@ private:
 
 	Words category;
 
-	bool findLetter(unsigned *idx = nullptr);
+	
 	void NextPlayer();
 public:
 	bool bot_losed            = false;
@@ -42,10 +42,10 @@ public:
 	
 	size_t disabled_players_counter = 0;
 	uint64_t words_counter = 0;
-	std::vector <std::string> categories_paths;
-	std::vector <std::string> categories_names;
-	std::vector <std::string> saves_paths;
-	std::vector <std::string> saves_names;
+	std::vector <std::wstring> categories_paths;
+	std::vector <std::wstring> categories_names;
+	std::vector <std::wstring> saves_paths;
+	std::vector <std::wstring> saves_names;
 	
 
 	std::vector <Player> all_players;
@@ -56,22 +56,13 @@ public:
 	unsigned current_player_id = 0;
 	
 	
-	
-
-
-
-
-
-	
-
-
 	Game();
 	~Game();
 	std::string getUtf8Letter();
-	Words& getCategory();
+	
 
 
-	void SaveGame(std::string& file_name);
+	void SaveGame(std::wstring& file_name);
 	bool LoadGame(int idx_of_save);
 	void EndGame();
 	bool StartGame(sf::Vector2i window_pos,

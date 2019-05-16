@@ -31,7 +31,6 @@ namespace msgBoxFlags
 	static bool you_are_in_game            = false;
 	static bool you_are_not_in_game        = false;
 	static bool really_delete              = false;
-	static bool really_exclude             = false;
 	static bool wrong_word_box             = false;
 	static bool all_players_lost           = false;
 	static bool delete_word                = false;
@@ -99,16 +98,6 @@ void WarningBox(sf::Sprite  &warning_sp,
 	ImGui::End();
 	ImGui::PopStyleColor(4);
 
-
-	/*in.read(reinterpret_cast<char*>(&sound_vol), sizeof(float));
-	in.read(reinterpret_cast<char*>(&music_vol), sizeof(float));
-	in.read(reinterpret_cast<char*>(&wnd_size.x), sizeof(unsigned));
-	in.read(reinterpret_cast<char*>(&wnd_size.y), sizeof(unsigned));
-	in.read(reinterpret_cast<char*>(&sound_off_flag), sizeof(bool));
-	in.read(reinterpret_cast<char*>(&music_off_flag), sizeof(bool));
-	in.read(reinterpret_cast<char*>(&fullscreen), sizeof(bool));
-	in.read(reinterpret_cast<char*>(&static_background), sizeof(bool));
-	in.read(reinterpret_cast<char*>(&idx_of_background), sizeof(size_t));*/
 }
 
 
@@ -157,7 +146,6 @@ void QuestionBox(sf::Sprite   &question_sp,
 		msgBoxFlags::msg_box_opend              = false;
 		msgBoxFlags::show_close_window_question = false;
 		msgBoxFlags::really_delete              = false;
-		msgBoxFlags::really_exclude             = false;
 		msgBoxFlags::delete_word                = false;
 		msgBoxFlags::add_word                   = false;
 		msgBoxFlags::exit_categoty_redo         = false;
